@@ -8,9 +8,9 @@ const config = {
   favicon: 'img/favicon.ico',
 
   // Set the production url of your site here
-  url: 'https://duty-call.github.io',
+  url: 'https://docs.dutycall.net',
   // Set the /<baseUrl>/ pathname under which your site is served
-  baseUrl: '/docs/',
+  baseUrl: '/',
 
   // GitHub pages deployment config.
   organizationName: 'dutycall',
