@@ -28,7 +28,116 @@ const sidebars = {
     },
   ],
 
-  // Voice Channel sidebar (Feature × Role structure)
+  // Channels sidebar
+  channels: [
+    {
+      type: 'category',
+      label: 'Channels',
+      items: [
+        // Voice Channel
+        {
+          type: 'category',
+          label: 'Voice',
+          items: [
+            'voice/overview',
+
+            // Inbound Voice Feature
+            {
+              type: 'category',
+              label: 'Inbound Voice',
+              items: [
+                'voice/inbound/overview',
+
+                // Role-specific docs
+                {
+                  type: 'category',
+                  label: 'For Admins',
+                  items: [
+                    'voice/inbound/admin/twilio-setup',
+                    'voice/inbound/admin/twiml-configuration',
+                    'voice/inbound/admin/webhook-setup',
+                    'voice/inbound/admin/queue-configuration',
+                  ],
+                },
+                {
+                  type: 'category',
+                  label: 'For Managers',
+                  items: [
+                    'voice/inbound/manager/monitoring-queue',
+                    'voice/inbound/manager/agent-availability',
+                    'voice/inbound/manager/queue-metrics',
+                  ],
+                },
+                {
+                  type: 'category',
+                  label: 'For Agents',
+                  items: [
+                    'voice/inbound/agent/accepting-calls',
+                    'voice/inbound/agent/call-controls',
+                    'voice/inbound/agent/wrap-up-workflow',
+                    'voice/inbound/agent/troubleshooting',
+                  ],
+                },
+              ],
+            },
+
+            // Outbound Voice Feature
+            {
+              type: 'category',
+              label: 'Outbound Voice',
+              items: [
+                'voice/outbound/overview',
+
+                // Manual Dialer
+                {
+                  type: 'category',
+                  label: 'Manual Dialer',
+                  items: [
+                    'voice/outbound/dialer/admin/webrtc-setup',
+                    'voice/outbound/dialer/manager/manual-calling',
+                  ],
+                },
+
+                // Campaigns (Auto-Dialer / Broadcast)
+                {
+                  type: 'category',
+                  label: 'Campaigns',
+                  items: [
+                    'voice/outbound/campaigns/manager/creating-campaigns',
+                    'voice/outbound/campaigns/manager/contact-management',
+                    'voice/outbound/campaigns/manager/google-sheets-import',
+                  ],
+                },
+              ],
+            },
+
+            // Reports & Analytics
+            {
+              type: 'category',
+              label: 'Reports & Analytics',
+              items: [
+                'channels/voice/reports-analytics/overview',
+                'channels/voice/reports-analytics/call-history',
+              ],
+            },
+
+            // Legacy Reporting (keeping for backwards compatibility)
+            {
+              type: 'category',
+              label: 'Reporting',
+              items: [
+                'voice/reporting/manager/call-history',
+                'voice/reporting/manager/queue-metrics',
+                'voice/reporting/manager/agent-performance',
+              ],
+            },
+          ],
+        },
+      ],
+    },
+  ],
+
+  // Voice sidebar (legacy - redirects to channels)
   voice: [
     {
       type: 'category',

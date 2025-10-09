@@ -68,9 +68,9 @@ const config = {
           },
           {
             type: 'docSidebar',
-            sidebarId: 'voice',
+            sidebarId: 'channels',
             position: 'left',
-            label: 'Voice',
+            label: 'Channels',
           },
           {
             type: 'docSidebar',
@@ -96,8 +96,12 @@ const config = {
                 to: '/getting-started/overview',
               },
               {
-                label: 'Voice',
+                label: 'Channels',
                 to: '/voice/overview',
+              },
+              {
+                label: 'Reports & Analytics',
+                to: '/channels/voice/reports-analytics/overview',
               },
             ],
           },
