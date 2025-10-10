@@ -61,24 +61,6 @@ const config = {
         },
         items: [
           {
-            type: 'docSidebar',
-            sidebarId: 'gettingStarted',
-            position: 'left',
-            label: 'Getting Started',
-          },
-          {
-            type: 'docSidebar',
-            sidebarId: 'channels',
-            position: 'left',
-            label: 'Channels',
-          },
-          {
-            type: 'docSidebar',
-            sidebarId: 'developers',
-            position: 'left',
-            label: 'Developers',
-          },
-          {
             href: 'https://github.com/dutycall/docs',
             label: 'GitHub',
             position: 'right',

@@ -13,9 +13,11 @@
 
 /** @type {import('@docusaurus/plugin-content-docs').SidebarsConfig} */
 const sidebars = {
-  // Getting Started sidebar
-  gettingStarted: [
+  // Main unified sidebar with all sections
+  docs: [
     'intro',
+
+    // Getting Started
     {
       type: 'category',
       label: 'Getting Started',
@@ -26,10 +28,8 @@ const sidebars = {
         'getting-started/quick-start-agent',
       ],
     },
-  ],
 
-  // Channels sidebar
-  channels: [
+    // Channels
     {
       type: 'category',
       label: 'Channels',
@@ -135,102 +135,8 @@ const sidebars = {
         },
       ],
     },
-  ],
 
-  // Voice sidebar (legacy - redirects to channels)
-  voice: [
-    {
-      type: 'category',
-      label: 'Voice',
-      items: [
-        'voice/overview',
-
-        // Inbound Voice Feature
-        {
-          type: 'category',
-          label: 'Inbound Voice',
-          items: [
-            'voice/inbound/overview',
-
-            // Role-specific docs
-            {
-              type: 'category',
-              label: 'For Admins',
-              items: [
-                'voice/inbound/admin/twilio-setup',
-                'voice/inbound/admin/twiml-configuration',
-                'voice/inbound/admin/webhook-setup',
-                'voice/inbound/admin/queue-configuration',
-              ],
-            },
-            {
-              type: 'category',
-              label: 'For Managers',
-              items: [
-                'voice/inbound/manager/monitoring-queue',
-                'voice/inbound/manager/agent-availability',
-                'voice/inbound/manager/queue-metrics',
-              ],
-            },
-            {
-              type: 'category',
-              label: 'For Agents',
-              items: [
-                'voice/inbound/agent/accepting-calls',
-                'voice/inbound/agent/call-controls',
-                'voice/inbound/agent/wrap-up-workflow',
-                'voice/inbound/agent/troubleshooting',
-              ],
-            },
-          ],
-        },
-
-        // Outbound Voice Feature
-        {
-          type: 'category',
-          label: 'Outbound Voice',
-          items: [
-            'voice/outbound/overview',
-
-            // Manual Dialer
-            {
-              type: 'category',
-              label: 'Manual Dialer',
-              items: [
-                'voice/outbound/dialer/admin/webrtc-setup',
-                'voice/outbound/dialer/manager/manual-calling',
-              ],
-            },
-
-            // Campaigns (Auto-Dialer / Broadcast)
-            {
-              type: 'category',
-              label: 'Campaigns',
-              items: [
-                'voice/outbound/campaigns/manager/creating-campaigns',
-                'voice/outbound/campaigns/manager/contact-management',
-                'voice/outbound/campaigns/manager/google-sheets-import',
-              ],
-            },
-          ],
-        },
-
-        // Reporting
-        {
-          type: 'category',
-          label: 'Reporting',
-          items: [
-            'voice/reporting/manager/call-history',
-            'voice/reporting/manager/queue-metrics',
-            'voice/reporting/manager/agent-performance',
-          ],
-        },
-      ],
-    },
-  ],
-
-  // Developers sidebar
-  developers: [
+    // Developers
     {
       type: 'category',
       label: 'Developer Docs',
