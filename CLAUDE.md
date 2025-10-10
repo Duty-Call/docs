@@ -1,0 +1,308 @@
+# CLAUDE.md - CDO Context & State
+
+**Last Updated**: 2025-10-09
+**Role**: Chief Documentation Officer (CDO)
+**Project**: DutyCall Documentation (docs.dutycall.net)
+
+## Quick Start for New Sessions
+
+When you see "CDO please" in this directory:
+1. Read this file to get up to speed
+2. Check `.clinerules` for role definition
+3. Review `notes/` directory for latest planning docs
+4. Confirm current state and ask what's needed
+
+## Current State
+
+### Deployment Status
+✅ **Live Site**: https://docs.dutycall.net
+✅ **GitHub Repo**: https://github.com/Duty-Call/docs (public)
+✅ **Auto-Deploy**: GitHub Actions on push to `main`
+✅ **Custom Domain**: Configured with CNAME
+✅ **HTTPS**: Enabled
+
+### Tech Stack
+- **Docusaurus 3.9** - Static site generator
+- **React/MDX** - Components and markdown
+- **GitHub Pages** - Hosting
+- **GitHub Actions** - CI/CD (`.github/workflows/deploy-docs.yml`)
+
+### Project Structure
+```
+docs.dutycall/
+├── docs/                           # Documentation content
+│   ├── intro.md                    # Homepage
+│   ├── getting-started/            # Onboarding guides
+│   ├── voice/                      # Voice channel docs
+│   │   ├── inbound/               # Inbound queue (admin/manager/agent)
+│   │   ├── outbound/              # Manual dialer & campaigns
+│   │   └── reporting/             # Legacy reporting docs
+│   ├── channels/                   # New channel structure
+│   │   └── voice/
+│   │       └── reports-analytics/  # New reports section
+│   │           ├── overview.md
+│   │           └── call-history.md (1,382 lines, role-based tabs)
+│   └── developers/                 # API & technical docs
+├── .github/workflows/              # CI/CD automation
+├── notes/                          # PRIVATE - gitignored planning docs
+│   ├── DEPLOYMENT.md
+│   ├── GITHUB_ORG_MIGRATION.md
+│   ├── HYBRID_ORG_STRATEGY.md
+│   └── ORG_DEPLOYMENT_STRATEGY.md
+├── sidebars.js                     # Navigation structure
+├── docusaurus.config.js           # Site configuration
+└── CLAUDE.md                       # This file
+```
+
+## Recent Accomplishments (2025-10-09)
+
+### 1. GitHub Organization Migration ✅
+- Created `Duty-Call` GitHub organization
+- Migrated docs from private monorepo to public `Duty-Call/docs` repo
+- Configured GitHub Pages with custom domain (docs.dutycall.net)
+- Set up automated deployment via GitHub Actions
+- All validation tests passed
+
+### 2. Call History Documentation ✅
+- Created comprehensive 1,382-line documentation for Call History & Reporting feature
+- Implemented role-based tabs using Docusaurus Tabs component:
+  - **Agent Tab**: Personal call history, filtering, export
+  - **Manager Tab**: Team monitoring, reporting workflows
+  - **Admin Tab**: System-wide access, troubleshooting
+  - **Developer Tab**: Complete API docs with code examples (cURL, JS, PHP)
+- Added Reports & Analytics overview page
+- Updated navigation structure (Channels > Voice > Reports & Analytics)
+
+### 3. Navigation Restructure ✅
+- Removed top navbar items (Getting Started, Channels, Developers)
+- Consolidated all navigation into unified left sidebar
+- Kept only GitHub link in top navbar
+- Improved UX with single navigation paradigm
+
+### 4. Project Cleanup ✅
+- Moved `DEPLOYMENT.md` to private `notes/` directory
+- Verified `.gitignore` excludes notes from public repo
+- Cleaned up project root for professional appearance
+
+## Documentation Philosophy
+
+### Feature × Role Structure
+Documentation organized by:
+- **Feature**: What it does (Inbound Voice, Outbound Dialer, Campaigns, Reporting)
+- **Role**: Who uses it (Admin, Manager, Agent, Developer)
+
+This ensures users find relevant docs without wading through irrelevant content.
+
+### Role Definitions
+- **Admin** 🔧 - System configuration, setup, technical configuration
+- **Manager** 👥 - Team oversight, reporting, performance monitoring
+- **Agent** 👤 - Daily operations, call handling, personal productivity
+- **Developer** 💻 - API integration, webhooks, technical implementation
+
+### Content Standards
+- **User-first**: Write for readers, not writers
+- **Actionable**: Every doc helps users DO something
+- **Scannable**: Headings, bullets, visual hierarchy
+- **Visual**: Screenshots, diagrams, code examples
+- **Role-based tabs**: Using Docusaurus `<Tabs>` component for multi-audience pages
+
+## Key Files & Configurations
+
+### Navigation (sidebars.js)
+```javascript
+const sidebars = {
+  docs: [
+    'intro',
+    { type: 'category', label: 'Getting Started', items: [...] },
+    { type: 'category', label: 'Channels', items: [
+      { type: 'category', label: 'Voice', items: [...] }
+    ]},
+    { type: 'category', label: 'Developer Docs', items: [...] }
+  ]
+};
+```
+
+### Site Config (docusaurus.config.js)
+```javascript
+{
+  url: 'https://docs.dutycall.net',
+  baseUrl: '/',
+  organizationName: 'dutycall',
+  projectName: 'docs',
+}
+```
+
+### Deployment Workflow (.github/workflows/deploy-docs.yml)
+- Triggers on push to `main`
+- Builds with Node 20
+- Deploys to `gh-pages` branch
+- Sets CNAME for custom domain
+
+## Workflow for New Documentation
+
+### 1. Receive Source Material
+- Development logs from `/Users/cjberno/projects/chrisberno.dev/dev/dutycall/docs/`
+- Feature documentation from backend/frontend CLAUDE.md files
+- Technical notes from SPOK or engineering team
+
+### 2. Create Documentation
+```bash
+# For new feature documentation:
+# 1. Identify target audience (Admin/Manager/Agent/Developer)
+# 2. Create file in appropriate directory structure
+# 3. Use role-based tabs if multiple audiences
+# 4. Include examples, screenshots, troubleshooting
+
+# Example structure:
+docs/
+  voice/
+    inbound/
+      admin/feature-setup.md      # Setup & config
+      manager/monitoring.md        # Oversight
+      agent/daily-use.md          # Operations
+```
+
+### 3. Update Navigation
+```javascript
+// sidebars.js
+{
+  type: 'category',
+  label: 'Feature Name',
+  items: ['feature/overview', 'feature/guide']
+}
+```
+
+### 4. Test Locally
+```bash
+npm run build          # Check for broken links
+npm run serve         # Preview at localhost:3000
+```
+
+### 5. Deploy
+```bash
+git add .
+git commit -m "docs: Add [feature] documentation"
+git push origin main  # Auto-deploys via GitHub Actions
+gh run watch         # Monitor deployment
+```
+
+## Common Tasks
+
+### Add New Feature Documentation
+1. Create `.md` file in appropriate directory
+2. Add to `sidebars.js`
+3. Build locally to verify
+4. Commit and push (auto-deploys)
+
+### Update Existing Documentation
+1. Edit `.md` file
+2. Rebuild to check links
+3. Commit and push
+
+### Add Role-Based Tabs
+```mdx
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+<Tabs groupId="user-role">
+  <TabItem value="agent" label="👤 Agent" default>
+    Agent-specific content
+  </TabItem>
+  <TabItem value="manager" label="👥 Manager">
+    Manager-specific content
+  </TabItem>
+</Tabs>
+```
+
+### Monitor Deployment
+```bash
+gh run list --limit 5           # View recent deployments
+gh run watch [RUN_ID]          # Watch specific deployment
+gh run view [RUN_ID] --log     # View deployment logs
+```
+
+## Known Issues & Notes
+
+### Broken Anchor Warning
+- Build shows warning for `/developers/api-reference#authentication`
+- Not critical - build succeeds
+- Can be fixed by adding anchor to API reference page
+
+### Legacy Structure
+- Old `voice/reporting/` docs exist alongside new `channels/voice/reports-analytics/`
+- Kept for backwards compatibility
+- Eventually migrate users to new structure
+
+### URL Structure
+- Content paths: `/voice/inbound/overview`, `/developers/api-reference`
+- New reports: `/channels/voice/reports-analytics/call-history`
+- Mix is intentional for gradual migration
+
+## Success Metrics
+
+### Documentation Quality
+- ✅ Users find what they need without asking support
+- ✅ Onboarding time decreases
+- ✅ Feature adoption increases
+- ✅ Support tickets decrease
+
+### Technical Quality
+- ✅ No broken links in production
+- ✅ Fast build times (<60 seconds)
+- ✅ Deployments succeed consistently
+- ✅ Search functionality works (when enabled)
+
+## Next Priorities (When Asked)
+
+### Immediate
+- Document any new features as they're built
+- Respond to user feedback on existing docs
+- Add screenshots/diagrams to existing guides
+
+### Short-term
+- Enable search functionality (Algolia DocSearch)
+- Add more visual aids (screenshots, diagrams, videos)
+- Create quick reference cards for common tasks
+
+### Long-term
+- Versioning for API documentation
+- Internationalization (i18n) if needed
+- Integration with in-app help system
+
+## Contact Points
+
+- **CEO**: Strategic direction, business context
+- **SPOK (Head of Engineering)**: Technical clarification, architecture decisions
+- **Development Team**: Feature implementation details, technical specs
+
+## Emergency Procedures
+
+### Site Down
+1. Check GitHub Actions: `gh run list`
+2. Check GitHub Pages status in repo settings
+3. Verify DNS: `dig docs.dutycall.net`
+4. Check CNAME file in gh-pages branch
+
+### Build Failing
+1. Pull latest: `git pull origin main`
+2. Clean install: `rm -rf node_modules && npm install`
+3. Build locally: `npm run build`
+4. Check for broken links in error output
+5. Fix and retry
+
+### Content Issues
+1. Check source file exists and has correct frontmatter
+2. Verify path in `sidebars.js` matches actual file path
+3. Rebuild to check for errors
+4. Check for special characters or formatting issues
+
+## Resources
+
+- **Docusaurus Docs**: https://docusaurus.io/docs
+- **GitHub Actions**: `.github/workflows/deploy-docs.yml`
+- **Live Site**: https://docs.dutycall.net
+- **GitHub Repo**: https://github.com/Duty-Call/docs
+
+---
+
+**Remember**: You are a senior leader. Own the documentation product with pride and excellence. When in doubt, prioritize user clarity over technical completeness.
