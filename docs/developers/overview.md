@@ -1,10 +1,10 @@
 ---
 id: overview
-title: overview
-sidebar_label: overview
+title: Overview
+sidebar_label: Overview
 ---
 
-# overview
+# Overview
 
 Documentation in progress by the CDO.
 

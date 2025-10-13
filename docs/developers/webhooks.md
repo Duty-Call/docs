@@ -1,10 +1,10 @@
 ---
 id: webhooks
-title: webhooks
-sidebar_label: webhooks
+title: Webhooks
+sidebar_label: Webhooks
 ---
 
-# webhooks
+# Webhooks
 
 Documentation in progress by the CDO.
 

@@ -24,3 +24,211 @@
   --ifm-color-primary-lightest: #e0e7ff;
   --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
 }
+
+/* ============================================
+   Role-Based Homepage Cards
+   ============================================ */
+
+.role-cards-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1.5rem;
+  margin: 1.5rem 0 2rem 0;
+}
+
+.role-card {
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1.25rem 1.5rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+
+.role-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px rgba(79, 70, 229, 0.15);
+  border-color: var(--ifm-color-primary);
+}
+
+.role-card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.role-card-icon {
+  font-size: 2rem;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.role-card h2 {
+  font-size: 1.25rem;
+  margin-bottom: 0;
+  color: #1e293b;
+  font-weight: 700;
+}
+
+.role-card p {
+  color: #64748b;
+  margin-bottom: 0.75rem;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+/* Agent Card Accent */
+.role-card-agent {
+  border-left: 4px solid #10b981;
+}
+
+.role-card-agent .role-card-icon {
+  background: linear-gradient(135deg, #10b981, #059669);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Admin Card Accent */
+.role-card-admin {
+  border-left: 4px solid var(--ifm-color-primary);
+}
+
+.role-card-admin .role-card-icon {
+  background: linear-gradient(135deg, var(--ifm-color-primary), var(--ifm-color-primary-darker));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Subtype Sections */
+.role-card-subtype {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e2e8f0;
+}
+
+.role-card-subtype:first-of-type {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: none;
+}
+
+.role-card-subtype strong {
+  display: block;
+  font-size: 1rem;
+  color: #475569;
+  margin-bottom: 0.75rem;
+  font-weight: 600;
+}
+
+/* Links */
+.role-card-links {
+  margin-top: 1rem;
+}
+
+.role-card-link-primary {
+  display: inline-block;
+  background: var(--ifm-color-primary);
+  color: white !important;
+  padding: 0.5rem 1.25rem;
+  border-radius: 6px;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+  margin-bottom: 0;
+}
+
+.role-card-link-primary:hover {
+  background: var(--ifm-color-primary-dark);
+  transform: translateX(4px);
+  text-decoration: none;
+}
+
+.role-card-links-secondary {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.role-card-links-secondary a {
+  color: var(--ifm-color-primary);
+  text-decoration: none;
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+  padding-left: 0.5rem;
+  border-left: 2px solid transparent;
+}
+
+.role-card-links-secondary a:hover {
+  color: var(--ifm-color-primary-dark);
+  padding-left: 0.75rem;
+  border-left-color: var(--ifm-color-primary);
+}
+
+/* Info Cards Section */
+.info-cards {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 2rem;
+  margin: 2rem 0;
+}
+
+.info-cards p {
+  margin-bottom: 1.5rem;
+}
+
+.info-cards p:last-child {
+  margin-bottom: 0;
+}
+
+/* Dark Mode Adjustments */
+[data-theme='dark'] .role-card {
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  border-color: #334155;
+}
+
+[data-theme='dark'] .role-card:hover {
+  border-color: var(--ifm-color-primary);
+  box-shadow: 0 12px 24px rgba(129, 140, 248, 0.2);
+}
+
+[data-theme='dark'] .role-card h2 {
+  color: #f1f5f9;
+}
+
+[data-theme='dark'] .role-card p {
+  color: #cbd5e1;
+}
+
+[data-theme='dark'] .role-card-subtype {
+  border-top-color: #334155;
+}
+
+[data-theme='dark'] .role-card-subtype strong {
+  color: #e2e8f0;
+}
+
+[data-theme='dark'] .info-cards {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .role-cards-container {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .role-card {
+    padding: 1.5rem;
+  }
+
+  .role-card h2 {
+    font-size: 1.5rem;
+  }
+}

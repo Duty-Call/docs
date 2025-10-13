@@ -1,6 +1,6 @@
 # CLAUDE.md - CDO Context & State
 
-**Last Updated**: 2025-10-09
+**Last Updated**: 2025-10-11
 **Role**: Chief Documentation Officer (CDO)
 **Project**: DutyCall Documentation (docs.dutycall.net)
 
@@ -33,28 +33,53 @@ docs.dutycall/
 ├── docs/                           # Documentation content
 │   ├── intro.md                    # Homepage
 │   ├── getting-started/            # Onboarding guides
-│   ├── voice/                      # Voice channel docs
-│   │   ├── inbound/               # Inbound queue (admin/manager/agent)
-│   │   ├── outbound/              # Manual dialer & campaigns
-│   │   └── reporting/             # Legacy reporting docs
-│   ├── channels/                   # New channel structure
+│   ├── channels/                   # OPERATIONAL: How to USE channels
 │   │   └── voice/
-│   │       └── reports-analytics/  # New reports section
+│   │       └── reports-analytics/  # Voice operational reporting
 │   │           ├── overview.md
 │   │           └── call-history.md (1,382 lines, role-based tabs)
+│   ├── voice/                      # Voice channel operational docs
+│   │   ├── inbound/               # Manager/Agent workflows
+│   │   └── outbound/              # Manual dialer & campaigns
+│   ├── administration/             # CONFIGURATION: How to SET UP
+│   │   ├── voice-channel-setup/   # Admin configuration (in sidebars.js only)
+│   │   │   ├── inbound/admin/     # Uses voice/inbound/admin/* files
+│   │   │   └── outbound/admin/    # Uses voice/outbound/dialer/admin/* files
+│   │   └── data-management/       # Cross-channel data governance
+│   │       ├── overview.md
+│   │       ├── voice-data-export.md
+│   │       ├── compliance-retention.md
+│   │       └── audit-logs.md
 │   └── developers/                 # API & technical docs
 ├── .github/workflows/              # CI/CD automation
 ├── notes/                          # PRIVATE - gitignored planning docs
-│   ├── DEPLOYMENT.md
-│   ├── GITHUB_ORG_MIGRATION.md
-│   ├── HYBRID_ORG_STRATEGY.md
-│   └── ORG_DEPLOYMENT_STRATEGY.md
 ├── sidebars.js                     # Navigation structure
 ├── docusaurus.config.js           # Site configuration
 └── CLAUDE.md                       # This file
 ```
 
-## Recent Accomplishments (2025-10-09)
+## Recent Accomplishments
+
+### 2025-10-11: Admin vs Operational Separation ✅
+- **Separated administration from operations**: Clear distinction between configuring vs using channels
+  - **Channels section**: Agent/Manager operational docs (how to USE the product)
+  - **Administration section**: Admin configuration docs (how to SET UP the product)
+- **Created Administration > Voice Channel Setup**:
+  - Inbound Configuration (Twilio, TwiML, Webhooks, Queue Config)
+  - Outbound Configuration (WebRTC Setup)
+- **Streamlined Channels > Voice for operations**:
+  - Removed "For Admins" subsections
+  - Renamed to "Inbound Calls" and "Outbound Calls" for clarity
+  - Kept Manager and Agent operational workflows
+  - Kept Reports & Analytics (operational insights)
+- **Added Data Management**: Cross-channel admin-only data governance
+  - Overview with clear distinction from Reports & Analytics
+  - Voice Data Export (bulk call records, recordings, transcripts)
+  - Compliance & Retention (GDPR, CCPA, HIPAA, data lifecycle)
+  - Audit Logs (user activity, system events, security tracking)
+- **Eliminated legacy reporting duplication**: Removed confusing `voice/reporting/` structure
+
+### 2025-10-09
 
 ### 1. GitHub Organization Migration ✅
 - Created `Duty-Call` GitHub organization
@@ -114,9 +139,36 @@ const sidebars = {
   docs: [
     'intro',
     { type: 'category', label: 'Getting Started', items: [...] },
+
+    // OPERATIONAL: How to USE channels
     { type: 'category', label: 'Channels', items: [
-      { type: 'category', label: 'Voice', items: [...] }
+      { type: 'category', label: 'Voice', items: [
+        'voice/overview',
+        { type: 'category', label: 'Inbound Calls', items: [
+          // Manager & Agent operational workflows
+        ]},
+        { type: 'category', label: 'Outbound Calls', items: [
+          // Manual calling & campaigns
+        ]},
+        { type: 'category', label: 'Reports & Analytics', items: [...] }
+      ]}
     ]},
+
+    // CONFIGURATION: How to SET UP channels
+    { type: 'category', label: 'Administration', items: [
+      { type: 'category', label: 'Voice Channel Setup', items: [
+        { type: 'category', label: 'Inbound Configuration', items: [
+          // Twilio, TwiML, Webhooks, Queues
+        ]},
+        { type: 'category', label: 'Outbound Configuration', items: [
+          // WebRTC setup
+        ]}
+      ]},
+      { type: 'category', label: 'Data Management', items: [
+        // Cross-channel data governance
+      ]}
+    ]},
+
     { type: 'category', label: 'Developer Docs', items: [...] }
   ]
 };
@@ -228,15 +280,31 @@ gh run view [RUN_ID] --log     # View deployment logs
 - Not critical - build succeeds
 - Can be fixed by adding anchor to API reference page
 
-### Legacy Structure
-- Old `voice/reporting/` docs exist alongside new `channels/voice/reports-analytics/`
-- Kept for backwards compatibility
-- Eventually migrate users to new structure
+### Information Architecture
 
-### URL Structure
-- Content paths: `/voice/inbound/overview`, `/developers/api-reference`
-- New reports: `/channels/voice/reports-analytics/call-history`
-- Mix is intentional for gradual migration
+**Core Principle**: Separate "using the product" from "configuring the product"
+
+#### Channels (Operational)
+- **Purpose**: How to USE channels in daily work
+- **Audience**: Agents, Managers (with appropriate permissions)
+- **Content**: Workflows, best practices, operational reporting
+- **Structure**: Voice > Inbound Calls / Outbound Calls / Reports & Analytics
+- **Future**: Email, Chat, SMS will follow same pattern
+
+#### Administration (Configuration)
+- **Purpose**: How to SET UP and GOVERN the platform
+- **Audience**: Administrators only
+- **Content**: System configuration, integrations, data governance
+- **Structure**:
+  - Voice Channel Setup (Inbound/Outbound Configuration)
+  - Data Management (exports, compliance, audit logs)
+  - Future: Email Channel Setup, Chat Channel Setup, etc.
+
+#### Key Distinctions
+- **Reports & Analytics** (in Channels): Operational insights for day-to-day work
+- **Data Management** (in Administration): Raw data access for compliance/auditing
+- **Channel Setup** (in Administration): Technical configuration and integrations
+- **Channel Usage** (in Channels): Daily operational workflows
 
 ## Success Metrics
 

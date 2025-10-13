@@ -41,24 +41,12 @@ const sidebars = {
           items: [
             'voice/overview',
 
-            // Inbound Voice Feature
+            // Inbound Voice - Operational
             {
               type: 'category',
-              label: 'Inbound Voice',
+              label: 'Inbound Calls',
               items: [
                 'voice/inbound/overview',
-
-                // Role-specific docs
-                {
-                  type: 'category',
-                  label: 'For Admins',
-                  items: [
-                    'voice/inbound/admin/twilio-setup',
-                    'voice/inbound/admin/twiml-configuration',
-                    'voice/inbound/admin/webhook-setup',
-                    'voice/inbound/admin/queue-configuration',
-                  ],
-                },
                 {
                   type: 'category',
                   label: 'For Managers',
@@ -81,24 +69,13 @@ const sidebars = {
               ],
             },
 
-            // Outbound Voice Feature
+            // Outbound Voice - Operational
             {
               type: 'category',
-              label: 'Outbound Voice',
+              label: 'Outbound Calls',
               items: [
                 'voice/outbound/overview',
-
-                // Manual Dialer
-                {
-                  type: 'category',
-                  label: 'Manual Dialer',
-                  items: [
-                    'voice/outbound/dialer/admin/webrtc-setup',
-                    'voice/outbound/dialer/manager/manual-calling',
-                  ],
-                },
-
-                // Campaigns (Auto-Dialer / Broadcast)
+                'voice/outbound/dialer/manager/manual-calling',
                 {
                   type: 'category',
                   label: 'Campaigns',
@@ -118,19 +95,70 @@ const sidebars = {
               items: [
                 'channels/voice/reports-analytics/overview',
                 'channels/voice/reports-analytics/call-history',
+                'channels/voice/reports-analytics/analytics-dashboard',
               ],
             },
+          ],
+        },
+      ],
+    },
 
-            // Legacy Reporting (keeping for backwards compatibility)
+    // Administration
+    {
+      type: 'category',
+      label: 'Administration',
+      items: [
+        // Roles & Permissions
+        {
+          type: 'category',
+          label: 'Roles & Permissions',
+          items: [
+            'administration/roles-permissions/overview',
+          ],
+        },
+
+        // Voice Channel Setup
+        {
+          type: 'category',
+          label: 'Voice Channel Setup',
+          items: [
             {
               type: 'category',
-              label: 'Reporting',
+              label: 'Inbound Configuration',
               items: [
-                'voice/reporting/manager/call-history',
-                'voice/reporting/manager/queue-metrics',
-                'voice/reporting/manager/agent-performance',
+                'voice/inbound/admin/twilio-setup',
+                'voice/inbound/admin/twiml-configuration',
+                'voice/inbound/admin/webhook-setup',
+                'voice/inbound/admin/queue-configuration',
               ],
             },
+            {
+              type: 'category',
+              label: 'Outbound Configuration',
+              items: [
+                'voice/outbound/dialer/admin/webrtc-setup',
+              ],
+            },
+          ],
+        },
+
+        // Data Management
+        {
+          type: 'category',
+          label: 'Data Management',
+          items: [
+            'administration/data-management/overview',
+            {
+              type: 'category',
+              label: 'Data Import',
+              items: [
+                'administration/data-management/data-import/overview',
+                'administration/data-management/data-import/google-sheets',
+              ],
+            },
+            'administration/data-management/data-export',
+            'administration/data-management/compliance-retention',
+            'administration/data-management/audit-logs',
           ],
         },
       ],
@@ -146,6 +174,21 @@ const sidebars = {
         'developers/webhooks',
         'developers/call-state-lifecycle',
         'developers/webrtc-patterns',
+
+        // Deployment
+        {
+          type: 'category',
+          label: 'Deployment',
+          items: [
+            {
+              type: 'category',
+              label: 'Backend Deployment',
+              items: [
+                'developers/deployment/backend/railway',
+              ],
+            },
+          ],
+        },
       ],
     },
   ],

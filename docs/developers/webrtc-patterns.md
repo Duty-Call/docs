@@ -1,10 +1,10 @@
 ---
 id: webrtc-patterns
-title: webrtc patterns
-sidebar_label: webrtc patterns
+title: WebRTC Patterns
+sidebar_label: WebRTC Patterns
 ---
 
-# webrtc patterns
+# WebRTC Patterns
 
 Documentation in progress by the CDO.
 

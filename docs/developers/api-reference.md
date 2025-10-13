@@ -1,10 +1,10 @@
 ---
 id: api-reference
-title: api reference
-sidebar_label: api reference
+title: API Reference
+sidebar_label: API Reference
 ---
 
-# api reference
+# API Reference
 
 Documentation in progress by the CDO.
 

@@ -1,10 +1,10 @@
 ---
 id: call-state-lifecycle
-title: call state lifecycle
-sidebar_label: call state lifecycle
+title: Call State Lifecycle
+sidebar_label: Call State Lifecycle
 ---
 
-# call state lifecycle
+# Call State Lifecycle
 
 Documentation in progress by the CDO.
 

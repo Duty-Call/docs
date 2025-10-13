@@ -58,5 +58,5 @@ See [Creating Campaigns](/voice/outbound/campaigns/manager/creating-campaigns) f
 ## Next Steps
 
 - [Import contacts from Google Sheets](/voice/outbound/campaigns/manager/google-sheets-import)
-- [View call history](/voice/reporting/manager/call-history)
-- [Monitor queue metrics](/voice/reporting/manager/queue-metrics)
+- [View call history](/channels/voice/reports-analytics/call-history)
+- [Monitor queue metrics](/voice/inbound/manager/queue-metrics)
