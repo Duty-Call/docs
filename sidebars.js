@@ -170,6 +170,17 @@ const sidebars = {
       label: 'Developer Docs',
       items: [
         'developers/overview',
+
+        // Getting Started
+        {
+          type: 'category',
+          label: 'Getting Started',
+          items: [
+            'developers/getting-started/local-setup',
+            'developers/getting-started/environment-config',
+          ],
+        },
+
         'developers/api-reference',
         'developers/webhooks',
         'developers/call-state-lifecycle',
@@ -180,9 +191,10 @@ const sidebars = {
           type: 'category',
           label: 'Deployment',
           items: [
+            'developers/deployment/production',
             {
               type: 'category',
-              label: 'Backend Deployment',
+              label: 'Platform Guides',
               items: [
                 'developers/deployment/backend/railway',
               ],
