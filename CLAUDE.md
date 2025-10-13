@@ -1,6 +1,6 @@
 # CLAUDE.md - CDO Context & State
 
-**Last Updated**: 2025-10-11
+**Last Updated**: 2025-10-13
 **Role**: Chief Documentation Officer (CDO)
 **Project**: DutyCall Documentation (docs.dutycall.net)
 
@@ -250,6 +250,46 @@ gh run watch         # Monitor deployment
 1. Edit `.md` file
 2. Rebuild to check links
 3. Commit and push
+
+### Convert Markdown to Google Docs
+**Purpose**: Create human-readable Google Docs versions of markdown documentation files for easy sharing with non-technical stakeholders.
+
+**Requirements**:
+- ✅ **pandoc** installed (`brew install pandoc` or `/opt/homebrew/bin/pandoc`)
+- ✅ **Google Drive API** enabled on project `dutycall-2509`
+- ✅ **Service account credentials**: `/Users/cjberno/projects/chrisberno.dev/dev/dutycall/backend/storage/app/google/service-account.json`
+- ✅ **Target folder shared** with service account: `dutycall-sheets-reader-492@dutycall-2509.iam.gserviceaccount.com` as Editor
+
+**Known Limitations**:
+- Service accounts have storage quota limits (may show "quota exceeded" errors)
+- Workaround: Convert to .docx and user manually uploads to Google Drive
+- Files auto-convert to Google Docs format when uploaded through browser
+
+**Conversion Workflow**:
+```bash
+# 1. Convert markdown to .docx using pandoc
+pandoc /path/to/file.md -f markdown -t docx -o /tmp/output.docx
+
+# 2. Either:
+#    A) Use Python script with Google Drive API (if quota allows)
+#    B) Copy to Desktop and manual drag-and-drop upload
+cp /tmp/output.docx ~/Desktop/
+
+# 3. User uploads to Google Drive folder
+# Google Drive automatically converts .docx to Google Docs format
+```
+
+**Python Upload Script Template** (when API works):
+- Located at: `/tmp/upload_to_drive.py` (example from 2025-10-13)
+- Uses: `google-auth`, `google-api-python-client` packages
+- Authenticates with service account JSON
+- Converts .docx to Google Docs format on upload
+
+**Tips**:
+- Always preserve original .md files (don't delete)
+- Test conversion locally first
+- Verify formatting after conversion
+- Google Docs format doesn't count against storage quota
 
 ### Add Role-Based Tabs
 ```mdx
