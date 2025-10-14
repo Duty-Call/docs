@@ -186,6 +186,9 @@ const sidebars = {
         'developers/call-state-lifecycle',
         'developers/webrtc-patterns',
 
+        // Monitoring
+        'monitoring/monitoring-overview',
+
         // Deployment
         {
           type: 'category',
