@@ -2,1157 +2,1056 @@
 sidebar_position: 1
 ---
 
-# Full-Stack Production Deployment
+# Production Deployment Guide
 
-Deploy DutyCall to Railway (backend) and Vercel (frontend) with auto-deployment on git push.
+**Last Updated:** October 19, 2025
+**Status:** Production-tested and verified
+
+Deploy DutyCall backend and frontend with multiple hosting options.
 
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
-<Tabs groupId="developer-type">
-<TabItem value="human" label="👨‍💻 Human Developer" default>
+---
 
 ## Overview
 
-DutyCall uses a modern, scalable deployment architecture:
-- **Backend**: Railway (containerized Laravel with PostgreSQL)
-- **Frontend**: Vercel (edge-deployed Next.js)
-- **Auto-Deployment**: Push to `main` branch → automatic production deploy
-- **Database**: PostgreSQL (Railway managed, auto-backups)
+<Tabs groupId="developer-type">
+<TabItem value="human" label="👨‍💻 Human Developer" default>
 
-**Deployment Time**: ~15 minutes for initial setup, then automatic on every push.
+DutyCall consists of two main components:
+- **Backend**: Laravel 11 API (PHP 8.3 + MySQL/PostgreSQL)
+- **Frontend**: Next.js 15 SPA (React)
+
+This guide covers multiple deployment options to ensure reliability, security, and maintainability for production environments.
+
+### Deployment Platform Options
+
+| Feature | DigitalOcean Droplet | Railway | Vercel (Frontend) |
+|---------|---------------------|---------|-------------------|
+| **Control** | Full root access | Managed platform | Managed platform |
+| **Reliability** | You manage it | Platform-dependent | Excellent |
+| **Cost** | $12/month (2GB) | Free tier available | Free tier available |
+| **Env Var Stability** | ✅ Stable | ⚠️ Has failed in production | ✅ Stable |
+| **Monitoring** | You configure it | Built-in (basic) | Built-in (basic) |
+| **Recommended For** | Production backend | Development/staging | Production frontend |
 
 </TabItem>
 <TabItem value="ai" label="🤖 AI Agent">
 
-## Architecture
+**Architecture Stack**:
+- Backend: Laravel 11 (PHP 8.3)
+- Frontend: Next.js 15 (React)
+- Database: MySQL (DigitalOcean) or PostgreSQL (Railway)
+- Deployment: Multi-platform support
 
-**Deployment Stack**:
-- Backend: Railway (Docker containers, auto-scaling)
-- Frontend: Vercel (Edge Functions, CDN distribution)
-- Database: PostgreSQL (Railway managed)
-- Git Integration: Auto-deploy on push to `main`
-
-**Key Differences from Local**:
-- MySQL → PostgreSQL
-- Ngrok → Direct HTTPS
-- `APP_DEBUG=false`
-- Production Twilio credentials
-- Environment-specific URLs
+**Platform Options**:
+1. **DigitalOcean Droplet** (Recommended for production)
+   - Full control, stable, requires manual setup
+2. **Railway** (Alternative, with warnings)
+   - Managed, auto-deploy, known reliability issues
+3. **Vercel** (Frontend only)
+   - Edge deployment, excellent for Next.js
 
 </TabItem>
 </Tabs>
 
 ---
 
-## Prerequisites
+## ⚠️ Railway Warning - October 19, 2025 Incident
 
 <Tabs groupId="developer-type">
 <TabItem value="human" label="👨‍💻 Human Developer" default>
 
-Before deploying, you'll need:
-
-### Accounts
-- ✅ **Railway Account** - [Sign up](https://railway.app) (free tier available)
-- ✅ **Vercel Account** - [Sign up](https://vercel.com) (free tier available)
-- ✅ **GitHub Repository Access** - Collaborator on `chrisberno/dutycall`
-- ✅ **Twilio Production Credentials** - Production account SID, auth token, API keys
-
-### Local Setup Complete
-- ✅ Successfully ran DutyCall locally (see [Local Setup](/developers/getting-started/local-setup))
-- ✅ Understand environment variables (see [Environment Configuration](/developers/getting-started/environment-config))
-- ✅ Tested end-to-end locally with Twilio calls
-
-:::tip Free Tier Limits
-Both Railway and Vercel offer generous free tiers perfect for development and small production workloads. You can start free and upgrade as you scale.
+:::danger Production Outage on Railway
+**Date:** October 19, 2025
+**Impact:** Complete production outage - Login broken for all users
+**Root Cause:** Railway `FRONTEND_URL` environment variable disappeared without warning
+**Duration:** 6+ hours (detection + migration to DigitalOcean)
+**Lesson Learned:** **Do NOT rely on Railway for production without extensive monitoring**
 :::
+
+**If you choose Railway for production, you MUST:**
+1. Set up external monitoring (UptimeRobot - see [Monitoring section](#monitoring--alerting))
+2. Document all environment variables externally
+3. Configure manual database backups
+4. Be prepared to migrate to another platform
+
+**Recommended:** Use Railway for development/staging only. Use DigitalOcean Droplet for production.
 
 </TabItem>
 <TabItem value="ai" label="🤖 AI Agent">
 
-**Requirements**:
-- Railway + Vercel accounts (OAuth with GitHub)
-- GitHub repo access (`chrisberno/dutycall`)
-- Twilio production credentials
-- Understanding of environment variables
+**Incident Report**:
+- **Event**: Railway env var `FRONTEND_URL` disappeared
+- **Effect**: CORS failure, complete auth breakdown
+- **Recovery**: 6+ hour migration to DigitalOcean
+- **Conclusion**: Railway unreliable for production workloads
 
-**Pre-flight Check**:
-- Local environment working
-- Database migrations tested
-- Twilio webhooks validated locally
+**Railway Risk Factors**:
+- Environment variables can disappear
+- No automatic backups on free tier
+- Limited infrastructure control
+- Platform-dependent reliability
+
+**Mitigation if using Railway**:
+- External monitoring (mandatory)
+- External env var documentation
+- Manual backup schedule
+- Migration plan ready
 
 </TabItem>
 </Tabs>
 
 ---
 
-## Backend Deployment (Railway)
+## DigitalOcean Droplet Deployment (Recommended)
 
 <Tabs groupId="developer-type">
 <TabItem value="human" label="👨‍💻 Human Developer" default>
 
-### Step 1: Create Railway Project
+### Prerequisites
 
-1. **Sign up/Login** to [Railway](https://railway.app)
-2. **Create New Project** → "Deploy from GitHub repo"
-3. **Connect GitHub** → Select `chrisberno/dutycall` repository
-4. **Configure Root Directory**:
-   - Click "Settings"
-   - Set "Root Directory" to `backend`
-   - Railway will auto-detect Laravel
+- DigitalOcean account
+- Domain name with DNS control
+- SSH key pair
+- GitHub repository access
 
-### Step 2: Add PostgreSQL Database
+### Step 1: Create Droplet
 
-1. In your Railway project, click **"+ New"**
-2. Select **"Database" → "Add PostgreSQL"**
-3. Railway automatically:
-   - Creates PostgreSQL instance
-   - Generates database credentials
-   - Adds environment variables (`DATABASE_URL`, `PG*` vars)
+**Via DigitalOcean Web UI:**
+1. Login to DigitalOcean
+2. Create → Droplets
+3. Choose plan: **Basic $12/month (2GB RAM, 1 vCPU, 50GB SSD)**
+4. Region: Select closest to your users
+5. OS: **Ubuntu 22.04 LTS**
+6. Authentication: Add your SSH key
+7. Hostname: `dutycall-backend`
 
-:::info Database Auto-Configuration
-Railway automatically populates `PGHOST`, `PGPORT`, `PGDATABASE`, `PGUSER`, `PGPASSWORD` environment variables. You'll reference these in your app's `.env` configuration.
-:::
+**Via CLI (doctl):**
+```bash
+# Install doctl
+brew install doctl  # macOS
 
-### Step 3: Configure Environment Variables
+# Authenticate
+doctl auth init
 
-In Railway Dashboard → Your Service → **"Variables"** tab, add these:
+# Get your SSH key ID
+doctl compute ssh-key list
+
+# Create droplet
+doctl compute droplet create dutycall-backend \
+  --image ubuntu-22-04-x64 \
+  --size s-2vcpu-2gb \
+  --region nyc1 \
+  --ssh-keys YOUR_SSH_KEY_ID
+
+# Get droplet IP
+doctl compute droplet list
+```
+
+### Step 2: Install LEMP Stack
+
+SSH into your droplet and run:
 
 ```bash
-# Application
-APP_NAME="Duty Call - Production"
+# Update system
+apt update && apt upgrade -y
+
+# Install Nginx
+apt install -y nginx
+
+# Install PHP 8.3 and required extensions
+apt install -y software-properties-common
+add-apt-repository -y ppa:ondrej/php
+apt update
+apt install -y \
+  php8.3 \
+  php8.3-fpm \
+  php8.3-cli \
+  php8.3-mysql \
+  php8.3-mbstring \
+  php8.3-xml \
+  php8.3-curl \
+  php8.3-zip \
+  php8.3-bcmath \
+  php8.3-gd \
+  php8.3-intl
+
+# Install MySQL
+apt install -y mysql-server
+
+# Secure MySQL
+mysql_secure_installation
+
+# Install Composer
+curl -sS https://getcomposer.org/installer | php
+mv composer.phar /usr/local/bin/composer
+
+# Install Certbot for SSL
+apt install -y certbot python3-certbot-nginx
+
+# Install Git
+apt install -y git
+```
+
+### Step 3: Configure MySQL Database
+
+```bash
+# Login to MySQL
+mysql -u root -p
+
+# Create database and user
+CREATE DATABASE dutycall;
+CREATE USER 'dutycall'@'localhost' IDENTIFIED BY 'YOUR_SECURE_PASSWORD_HERE';
+GRANT ALL PRIVILEGES ON dutycall.* TO 'dutycall'@'localhost';
+FLUSH PRIVILEGES;
+EXIT;
+
+# Save credentials securely
+cat > /root/.dutycall-db-credentials << EOF
+Database: dutycall
+Username: dutycall
+Password: YOUR_SECURE_PASSWORD_HERE
+EOF
+
+chmod 600 /root/.dutycall-db-credentials
+```
+
+**Generate secure password:**
+```bash
+openssl rand -base64 32
+```
+
+### Step 4: Deploy Laravel Backend
+
+```bash
+# Create application directory
+mkdir -p /var/www/dutycall
+cd /var/www/dutycall
+
+# Generate SSH deploy key for GitHub
+ssh-keygen -t ed25519 -C "dutycall-production" -f ~/.ssh/dutycall_deploy_key -N ""
+
+# Display public key to add to GitHub
+cat ~/.ssh/dutycall_deploy_key.pub
+```
+
+**Add deploy key to GitHub:**
+1. Go to GitHub repository → Settings → Deploy keys
+2. Add new deploy key
+3. Paste public key content
+
+```bash
+# Clone repository
+GIT_SSH_COMMAND="ssh -i ~/.ssh/dutycall_deploy_key" git clone git@github.com:YOUR_ORG/dutycall.git backend
+
+cd backend
+
+# Install dependencies
+composer install --no-dev --optimize-autoloader
+
+# Configure environment
+cp .env.example .env
+nano .env  # Edit with production values
+```
+
+**Production .env:**
+```bash
+APP_NAME=DutyCall
 APP_ENV=production
-APP_DEBUG=false                      # CRITICAL: Must be false
-APP_KEY=base64:...                   # Generate new key for production
-APP_URL=https://dutycall-production.up.railway.app
+APP_KEY=  # Will generate in next step
+APP_DEBUG=false  # CRITICAL: Must be false
+APP_URL=https://api.dutycall.net
 
-# Frontend (CORS)
-FRONTEND_URL=https://your-production-domain.com
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=dutycall
+DB_USERNAME=dutycall
+DB_PASSWORD=YOUR_SECURE_PASSWORD
 
-# Database (use Railway-provided variables)
-DB_CONNECTION=pgsql
-DB_HOST=${PGHOST}
-DB_PORT=${PGPORT}
-DB_DATABASE=${PGDATABASE}
-DB_USERNAME=${PGUSER}
-DB_PASSWORD=${PGPASSWORD}
+FRONTEND_URL=https://dutycall.vercel.app
+SANCTUM_STATEFUL_DOMAINS=dutycall.vercel.app
+SESSION_DOMAIN=.vercel.app
 
-# Twilio Production Credentials
-TWILIO_ACCOUNT_SID=your_prod_account_sid
-TWILIO_AUTH_TOKEN=your_prod_auth_token
-TWILIO_PHONE_NUMBER=+16282373889
-TWILIO_API_KEY=your_prod_api_key
-TWILIO_API_SECRET=your_prod_api_secret
-TWILIO_TWIML_APP_SID=your_prod_twiml_app_sid
-TWILIO_EDGE=ashburn
+SESSION_DRIVER=database
+QUEUE_CONNECTION=database
 
-# DO NOT SET NGROK_URL in production
-# Code will automatically fall back to APP_URL
+# Add Twilio, Sentry, etc. as needed
 ```
-
-:::warning Security Critical
-- **Never use local/dev credentials in production**
-- **Never enable `APP_DEBUG=true` in production** (exposes sensitive data)
-- **Generate a new `APP_KEY`** for production: `php artisan key:generate --show`
-- **Use HTTPS URLs only** for `APP_URL` and `FRONTEND_URL`
-:::
-
-### Step 4: Run Database Migrations
-
-**Option A: Railway CLI** (Recommended)
 
 ```bash
-# Install Railway CLI
-npm install -g @railway/cli
+# Initialize application
+php artisan key:generate
+php artisan session:table
+php artisan migrate --force
+php artisan db:seed --class=RoleTestUsersSeeder --force
 
-# Login
-railway login
+# Set permissions (CRITICAL)
+chown -R www-data:www-data storage bootstrap/cache
+chmod -R 775 storage bootstrap/cache
 
-# Link to your project
-railway link
-
-# Run migrations
-railway run php artisan migrate --force
+# Cache configuration
+php artisan config:cache
+php artisan route:cache
+php artisan view:cache
 ```
 
-**Option B: Railway Dashboard**
+### Step 5: Configure Nginx
 
-1. Go to your service → **"Deployments"** tab
-2. Click latest deployment
-3. Open **"View Logs"** and find the deployment terminal
-4. Use the terminal to run: `php artisan migrate --force`
+```bash
+# Create Nginx site configuration
+cat > /etc/nginx/sites-available/dutycall << 'EOF'
+server {
+    listen 80;
+    server_name api.dutycall.net;
+    return 301 https://$server_name$request_uri;
+}
 
-:::tip Seeding Production
-**Do NOT run `RoleTestUsersSeeder` in production** (those are test accounts with weak passwords). Create production users through your application's UI or create a production-specific seeder.
-:::
+server {
+    listen 443 ssl http2;
+    server_name api.dutycall.net;
+    root /var/www/dutycall/backend/public;
+    index index.php index.html;
 
-### Step 5: Deploy
+    ssl_certificate /etc/letsencrypt/live/api.dutycall.net/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/api.dutycall.net/privkey.pem;
 
-1. **Push to `main` branch**:
-   ```bash
-   git push origin main
-   ```
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
 
-2. **Railway auto-deploys**:
-   - Detects changes
-   - Builds Docker container
-   - Runs migrations (if configured)
-   - Restarts service
-   - Updates public URL
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;
+    }
 
-3. **Monitor deployment**:
-   - Check Railway Dashboard → "Deployments" tab
-   - View build logs for errors
-   - Verify service is "Active"
+    location ~ \.php$ {
+        fastcgi_pass unix:/var/run/php/php8.3-fpm.sock;
+        fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
+        include fastcgi_params;
+        fastcgi_hide_header X-Powered-By;
+    }
 
-4. **Test backend**:
-   ```bash
-   curl https://your-railway-url.up.railway.app/api/health
-   ```
+    location ~ /\. {
+        deny all;
+    }
+
+    access_log /var/log/nginx/dutycall-access.log;
+    error_log /var/log/nginx/dutycall-error.log;
+}
+EOF
+
+# Enable site
+ln -s /etc/nginx/sites-available/dutycall /etc/nginx/sites-enabled/
+rm -f /etc/nginx/sites-enabled/default
+nginx -t
+systemctl restart nginx
+```
+
+### Step 6: Configure DNS & SSL
+
+**Add DNS A record:**
+```
+Type: A
+Host: api
+Value: YOUR_DROPLET_IP
+```
+
+**Install SSL certificate:**
+```bash
+certbot --nginx -d api.dutycall.net
+systemctl list-timers | grep certbot  # Verify auto-renewal
+```
+
+### Step 7: Configure Firewall
+
+```bash
+ufw allow OpenSSH
+ufw allow 'Nginx Full'
+ufw enable
+ufw status
+```
+
+### Step 8: Test Backend
+
+```bash
+curl https://api.dutycall.net/api/user
+# Should return 401 Unauthorized (means API is running)
+```
 
 </TabItem>
 <TabItem value="ai" label="🤖 AI Agent">
 
-**Railway Deployment Flow**:
+**DigitalOcean Setup Summary**:
 
-1. **Project Init**: Railway detects Laravel via `composer.json`
-2. **Build**: Dockerfile or Nixpacks buildpack
-3. **Database**: PostgreSQL provisioned, env vars auto-populated
-4. **Environment**: Configure all required vars (see list above)
-5. **Migrations**: Manual via CLI or dashboard terminal
-6. **Deploy**: Push to `main` → auto-build → restart
+**Infrastructure**:
+- Ubuntu 22.04 LTS droplet ($12/month, 2GB RAM)
+- Nginx web server
+- PHP 8.3-FPM
+- MySQL 8.0+
+- Let's Encrypt SSL (auto-renew)
+- UFW firewall (ports 22, 80, 443)
 
-**Critical Environment Variables**:
-- `APP_DEBUG=false` - Security (exposes stack traces if true)
-- `APP_KEY` - Encryption key (must be unique)
-- `DB_CONNECTION=pgsql` - Railway uses PostgreSQL, not MySQL
-- No `NGROK_URL` - Code falls back to `APP_URL`
-- `FRONTEND_URL` - CORS whitelist
+**Deployment Flow**:
+1. Create droplet (doctl or web UI)
+2. Install LEMP stack (Nginx, PHP, MySQL)
+3. Configure MySQL database with secure password
+4. Clone Laravel app from GitHub
+5. Configure .env with production values
+6. Run migrations, set permissions
+7. Configure Nginx virtual host
+8. Point DNS A record to droplet IP
+9. Install SSL with Certbot
+10. Enable firewall, test endpoints
 
-**Database Connection**:
-```php
-// config/database.php uses Railway env vars
-'pgsql' => [
-    'host' => env('DB_HOST', env('PGHOST')),
-    'database' => env('DB_DATABASE', env('PGDATABASE')),
-    'username' => env('DB_USERNAME', env('PGUSER')),
-    'password' => env('DB_PASSWORD', env('PGPASSWORD')),
-]
+**Key Files**:
+- App: `/var/www/dutycall/backend`
+- Nginx config: `/etc/nginx/sites-available/dutycall`
+- Logs: `/var/log/nginx/dutycall-*.log`
+- DB credentials: `/root/.dutycall-db-credentials`
+
+**Updates**:
+```bash
+cd /var/www/dutycall/backend
+git pull origin main
+composer install --no-dev --optimize-autoloader
+php artisan migrate --force
+php artisan config:cache
+systemctl restart php8.3-fpm
 ```
-
-**Deployment Trigger**: Push to `main` branch
 
 </TabItem>
 </Tabs>
 
 ---
 
-## Frontend Deployment (Vercel)
+## Railway Deployment (Alternative - Not Recommended for Production)
 
 <Tabs groupId="developer-type">
 <TabItem value="human" label="👨‍💻 Human Developer" default>
 
-### Step 1: Create Vercel Project
+:::warning Use Railway at Your Own Risk
+Railway has known reliability issues in production (see incident report above). Use for development/staging only, or ensure robust external monitoring is in place.
+:::
 
-1. **Sign up/Login** to [Vercel](https://vercel.com)
-2. **Import Git Repository**:
-   - Click "Add New..." → "Project"
-   - Select `chrisberno/dutycall` from GitHub
-3. **Configure Build Settings**:
-   - **Framework Preset**: Next.js (auto-detected)
-   - **Root Directory**: `frontend`
-   - **Build Command**: `npm run build` (default)
-   - **Output Directory**: `.next` (default)
-   - **Install Command**: `npm install` (default)
+### Step 1: Install Railway CLI
+
+```bash
+npm install -g @railway/cli
+railway login
+railway link  # Select your project
+```
 
 ### Step 2: Configure Environment Variables
 
-In Vercel Dashboard → Your Project → **"Settings" → "Environment Variables"**:
+Add via Railway dashboard or CLI:
 
 ```bash
-# Backend API URL (from Railway)
-NEXT_PUBLIC_API_URL=https://dutycall-production.up.railway.app
-
-# Environment
-NEXT_PUBLIC_APP_ENV=production
+railway variables set APP_ENV=production
+railway variables set APP_DEBUG=false
+railway variables set APP_URL=https://YOUR_PROJECT.railway.app
+railway variables set FRONTEND_URL=https://YOUR_FRONTEND.vercel.app
+# ... add all other variables from .env
 ```
 
-:::info Build-Time Variables
-Variables prefixed with `NEXT_PUBLIC_` are embedded into the frontend build at build time. Changing these requires a redeploy.
+:::danger Document Variables Externally
+Railway environment variables can disappear. Keep a backup copy in a secure location (1Password, encrypted file, etc.).
 :::
 
 ### Step 3: Deploy
 
-1. **Click "Deploy"** in Vercel dashboard
-2. Vercel automatically:
-   - Clones repository
-   - Installs dependencies (`npm install`)
-   - Builds Next.js app (`npm run build`)
-   - Deploys to edge network
-   - Generates production URL
+```bash
+git push origin main  # Auto-deploys
+# Or: railway up
+```
 
-3. **Deployment completes** in ~2 minutes
-4. **Test frontend**:
-   - Visit the Vercel URL (e.g., `https://dutycall-abc123.vercel.app`)
-   - Should see login page
-   - Test login with production credentials
+### Step 4: Run Migrations
 
-### Step 4: Custom Domain (Optional)
-
-1. In Vercel → **"Settings" → "Domains"**
-2. **Add Domain**: `app.dutycall.com` (or your domain)
-3. **Configure DNS**:
-   - Add CNAME record pointing to `cname.vercel-dns.com`
-   - Or add A records (Vercel provides IPs)
-4. **SSL**: Automatically provisioned by Vercel
-5. **Update `FRONTEND_URL`** in Railway to match custom domain
-
-### Step 5: Auto-Deployment Setup
-
-Vercel automatically configures:
-- ✅ **Production deploys**: Push to `main` → production
-- ✅ **Preview deploys**: Push to any other branch → preview URL
-- ✅ **PR previews**: Every pull request gets a unique preview URL
+```bash
+railway run php artisan migrate --force
+railway run php artisan db:seed --class=RoleTestUsersSeeder --force
+```
 
 </TabItem>
 <TabItem value="ai" label="🤖 AI Agent">
 
-**Vercel Deployment Flow**:
+**Railway Deployment** (Use with caution):
 
-1. **Project Import**: OAuth with GitHub, select repo
-2. **Config**: Root dir `frontend`, framework Next.js (auto-detected)
-3. **Build**: `npm install && npm run build`
-4. **Deploy**: Static assets to CDN, functions to edge
-5. **Domain**: Auto HTTPS, custom domain optional
-
-**Environment Variables**:
-- `NEXT_PUBLIC_API_URL` - Backend URL (Railway)
-- `NEXT_PUBLIC_APP_ENV=production`
-
-**Build Process**:
+**Setup**:
 ```bash
-# Vercel runs:
-npm install
-npm run build  # Creates .next/ output directory
-# Deploys to Edge Network (CDN)
+npm install -g @railway/cli
+railway login
+railway link
+railway variables set KEY=VALUE
+railway up
 ```
 
-**Auto-Deploy**:
-- Push to `main` → Production deploy
-- Push to other branch → Preview deploy
-- Pull request → Unique preview URL
+**Environment**:
+- Auto-detects Laravel via composer.json
+- PostgreSQL database (not MySQL)
+- Auto-deploys on push to main
+- Docker containerization
 
-**Edge Network**: Vercel deploys frontend to 100+ global edge locations
+**Risks**:
+- Environment variables can disappear
+- No automatic backups on free tier
+- Limited control over infrastructure
+
+**Mandatory if using Railway**:
+- External monitoring (UptimeRobot)
+- External env var backup
+- Migration plan to DigitalOcean ready
 
 </TabItem>
 </Tabs>
 
 ---
 
-## Twilio Production Configuration
+## Vercel Frontend Deployment
 
 <Tabs groupId="developer-type">
 <TabItem value="human" label="👨‍💻 Human Developer" default>
 
-### Phone Number Configuration
-
-Configure your production Twilio phone number to point to Railway backend:
-
-1. **Login to [Twilio Console](https://console.twilio.com)**
-2. **Navigate to**: Phone Numbers → Manage → Active Numbers
-3. **Select**: `+1 628 237 3889` (production number)
-4. **Configure Voice & Fax**:
-   - **Voice URL**: `https://dutycall-production.up.railway.app/api/twilio/inbound`
-   - **HTTP Method**: `POST`
-   - **Status Callback URL**: `https://dutycall-production.up.railway.app/api/twilio/status`
-   - **HTTP Method**: `POST`
-5. **Click "Save"**
-
-### TwiML App Configuration
-
-Configure your production TwiML App for WebRTC calling:
-
-1. **Navigate to**: Voice → Manage → TwiML Apps
-2. **Select your production TwiML App** (or create new)
-3. **Configure Voice**:
-   - **Voice Request URL**: `https://dutycall-production.up.railway.app/api/twilio/agent-dial-queue`
-   - **HTTP Method**: `POST`
-4. **Copy the TwiML App SID** → Use as `TWILIO_TWIML_APP_SID` in Railway env vars
-5. **Click "Save"**
-
-:::warning Production vs Dev Numbers
-- **Dev Number**: `+1 831 603 3889` → Points to ngrok (local development)
-- **Prod Number**: `+1 628 237 3889` → Points to Railway (production)
-
-Never point production number to ngrok or dev credentials!
-:::
-
-### Verify Configuration
-
-Test that Twilio can reach your production backend:
+### Step 1: Install Vercel CLI
 
 ```bash
-# Test inbound endpoint
-curl -X POST https://dutycall-production.up.railway.app/api/twilio/inbound
-
-# Test status callback
-curl -X POST https://dutycall-production.up.railway.app/api/twilio/status
-
-# Test WebRTC endpoint
-curl -X POST https://dutycall-production.up.railway.app/api/twilio/agent-dial-queue
+npm install -g vercel
 ```
 
-All should return TwiML XML responses (not 404s).
-
-</TabItem>
-<TabItem value="ai" label="🤖 AI Agent">
-
-**Twilio Webhook Configuration**:
-
-**Phone Number** (`+1 628 237 3889`):
-- Voice URL: `{RAILWAY_URL}/api/twilio/inbound` (POST)
-- Status Callback: `{RAILWAY_URL}/api/twilio/status` (POST)
-
-**TwiML App** (WebRTC):
-- Voice Request URL: `{RAILWAY_URL}/api/twilio/agent-dial-queue` (POST)
-- App SID → `TWILIO_TWIML_APP_SID` env var
-
-**Why These Endpoints**:
-- `/inbound` - Receives incoming calls, returns `<Enqueue>` TwiML
-- `/status` - Receives call status updates (completed, failed, etc.)
-- `/agent-dial-queue` - Handles agent WebRTC connection to queue
-
-**Production vs Local**:
-- Local: Twilio → ngrok → localhost
-- Production: Twilio → Railway (direct HTTPS)
-
-</TabItem>
-</Tabs>
-
----
-
-## Deployment Workflow
-
-<Tabs groupId="developer-type">
-<TabItem value="human" label="👨‍💻 Human Developer" default>
-
-### Git Flow Integration
-
-**Development Workflow:**
+### Step 2: Link Project
 
 ```bash
-# Work on feature branch
-git checkout -b feature/new-feature
-# Make changes...
-git add .
-git commit -m "feat: Add new feature"
-git push origin feature/new-feature
-
-# Creates Vercel preview deploy automatically
-# Railway does NOT deploy (only deploys main)
+cd frontend/
+vercel link  # Select your project
 ```
 
-**Production Deployment:**
+### Step 3: Configure Environment Variables
+
+**CRITICAL:** Add to ALL THREE environments (production, preview, development)
 
 ```bash
-# Create PR: feature/new-feature → main
-# Review code, test on Vercel preview
-# Merge PR to main
+# Production
+echo "https://api.dutycall.net" | vercel env add NEXT_PUBLIC_API_URL production
 
-# This triggers:
-# 1. Railway production deploy (backend)
-# 2. Vercel production deploy (frontend)
+# Preview (PR deployments)
+echo "https://api.dutycall.net" | vercel env add NEXT_PUBLIC_API_URL preview
+
+# Development
+echo "http://localhost:8090" | vercel env add NEXT_PUBLIC_API_URL development
 ```
 
-**Monitoring Deployment:**
+### Step 4: Deploy
 
+**Option A: Git Integration (Automatic)**
 ```bash
-# Watch Railway logs
-# Railway Dashboard → Deployments → View Logs
-
-# Watch Vercel logs
-# Vercel Dashboard → Deployments → View Function Logs
-```
-
-### Rollback Procedure
-
-**If deployment breaks production:**
-
-**Option A: Redeploy Previous Version (Fast)**
-
-1. **Railway**:
-   - Go to "Deployments" tab
-   - Find last working deployment
-   - Click "Redeploy"
-
-2. **Vercel**:
-   - Go to "Deployments" tab
-   - Find last working deployment
-   - Click "..." → "Redeploy"
-
-**Option B: Git Revert (Permanent Fix)**
-
-```bash
-# Find the bad commit
-git log --oneline
-
-# Revert it
-git revert <bad-commit-hash>
-
-# Push to main (triggers new deploy)
+git checkout main
+git merge develop
 git push origin main
 ```
 
-</TabItem>
-<TabItem value="ai" label="🤖 AI Agent">
-
-**Git-Based Deployment**:
-
-**Branch Strategy**:
-- `main` → Production (Railway + Vercel)
-- `feature/*` → Vercel preview only (Railway ignores)
-- `develop` → Optional staging environment
-
-**Deployment Triggers**:
-- Push to `main` → Prod deploy (both platforms)
-- Push to other branch → Vercel preview deploy only
-- Pull request → Vercel preview comment on PR
-
-**Rollback Methods**:
-1. **Platform rollback**: Redeploy previous deployment via dashboard
-2. **Git revert**: `git revert` bad commit, push to `main`
-3. **Git reset**: `git reset --hard` previous commit (force push, dangerous)
-
-**Recommended**: Use platform rollback for speed, then fix with git revert.
-
-</TabItem>
-</Tabs>
-
----
-
-## Monitoring & Health Checks
-
-<Tabs groupId="developer-type">
-<TabItem value="human" label="👨‍💻 Human Developer" default>
-
-### Railway Monitoring
-
-**Built-in Metrics:**
-- **CPU Usage**: Track spikes during high call volume
-- **Memory Usage**: Monitor for memory leaks
-- **Request Count**: See API traffic patterns
-- **Response Time**: Track API performance
-
-**Access Logs:**
-1. Railway Dashboard → Your Service
-2. Click "Deployments" → Latest deployment
-3. Click "View Logs"
-4. Filter by log level (error, warning, info)
-
-**Health Check Endpoint:**
+**Option B: Manual Deploy**
 ```bash
-curl https://dutycall-production.up.railway.app/api/health
+cd frontend/
+vercel deploy --prod
 ```
 
-### Vercel Monitoring
+### Step 5: Verify Deployment
 
-**Built-in Analytics:**
-- **Real User Monitoring**: Actual user performance metrics
-- **Function Logs**: Edge function execution logs
-- **Error Tracking**: Frontend JavaScript errors
-
-**Access Analytics:**
-1. Vercel Dashboard → Your Project
-2. Click "Analytics" tab
-3. View real-time and historical metrics
-
-### Recommended External Monitoring
-
-**Error Tracking** (Coming Soon):
-- **Sentry** - Track backend + frontend errors
-- Catch exceptions before users report them
-- Stack traces with user context
-
-**Uptime Monitoring** (Coming Soon):
-- **UptimeRobot** - Ping your API every 5 minutes
-- Get alerts when site goes down
-- Track uptime percentage
-
-**Application Performance** (Coming Soon):
-- **New Relic / DataDog** - Deep application insights
-- Track slow database queries
-- Monitor Twilio API performance
-
-</TabItem>
-<TabItem value="ai" label="�🤖 AI Agent">
-
-**Railway Metrics**:
-- CPU/Memory usage
-- Request rate (RPM)
-- Response time (P50, P95, P99)
-- Error rate
-- Deploy history
-
-**Vercel Analytics**:
-- Core Web Vitals (LCP, FID, CLS)
-- Real User Monitoring (RUM)
-- Edge function execution time
-- Error tracking (client-side)
-
-**Health Checks**:
-- Backend: `/api/health` endpoint
-- Frontend: Vercel auto-monitors edge functions
-- Database: Railway PostgreSQL metrics
-
-**Alerting** (Manual Setup):
-- Sentry: Exception tracking, alerts on error spikes
-- UptimeRobot: HTTP monitoring, downtime alerts
-- PagerDuty: On-call rotation for critical issues
-
-</TabItem>
-</Tabs>
-
----
-
-## Production vs Local Differences
-
-<Tabs groupId="developer-type">
-<TabItem value="human" label="👨‍💻 Human Developer" default>
-
-### Quick Reference
-
-| Feature | Local Development | Production |
-|---------|-------------------|------------|
-| **Backend URL** | `localhost:8090` | `https://dutycall-production.up.railway.app` |
-| **Frontend URL** | `localhost:3000` | `https://your-domain.vercel.app` |
-| **Database** | MySQL 8.0+ | PostgreSQL (Railway) |
-| **Twilio Number** | `+1 831 603 3889` (dev) | `+1 628 237 3889` (prod) |
-| **Webhook Delivery** | Ngrok tunnel | Direct HTTPS to Railway |
-| **Debug Mode** | `APP_DEBUG=true` | `APP_DEBUG=false` ⚠️ |
-| **Deployment** | Manual (`php artisan serve`) | Auto (git push) |
-| **Environment** | `APP_ENV=local` | `APP_ENV=production` |
-| **CORS** | `localhost:3000` | Production domain |
-| **SSL/HTTPS** | Not required | Required (auto) |
-
-### Key Behavioral Differences
-
-**Database Differences:**
-- **Local**: MySQL uses `mysql` driver, case-insensitive by default
-- **Production**: PostgreSQL uses `pgsql` driver, case-sensitive
-- **Migrations**: Test migrations with PostgreSQL locally if possible
-
-**TwiML Routing:**
-```php
-// Local: Uses NGROK_URL
-$url = env('NGROK_URL') . '/api/twilio/callback';
-// → https://abc123.ngrok-free.app/api/twilio/callback
-
-// Production: Falls back to APP_URL (no NGROK_URL set)
-$url = env('NGROK_URL', env('APP_URL')) . '/api/twilio/callback';
-// → https://dutycall-production.up.railway.app/api/twilio/callback
+```bash
+vercel ls --prod
+# Visit production URL
 ```
-
-**Error Handling:**
-- **Local**: Full stack traces shown (`APP_DEBUG=true`)
-- **Production**: Generic error messages only (`APP_DEBUG=false`)
 
 </TabItem>
 <TabItem value="ai" label="🤖 AI Agent">
 
-**Core Differences**:
+**Vercel Deployment**:
 
-1. **Database**: MySQL → PostgreSQL
-   - Different SQL dialects
-   - Case sensitivity differences
-   - Connection pooling handled by Railway
-
-2. **Environment Variables**:
-   - Local: `NGROK_URL` set, `APP_DEBUG=true`
-   - Prod: No `NGROK_URL`, `APP_DEBUG=false`
-
-3. **Deployment**:
-   - Local: Manual process startup
-   - Prod: Docker containerization, auto-restart
-
-4. **Networking**:
-   - Local: Ngrok tunnel for webhooks
-   - Prod: Direct HTTPS, no intermediary
-
-5. **Scaling**:
-   - Local: Single PHP process
-   - Prod: Auto-scaling containers (Railway)
-
-**Code Adaptation**:
-Most code works identically. Key pattern:
-```php
-$url = env('NGROK_URL', env('APP_URL')) . '/path';
+**Setup**:
+```bash
+npm install -g vercel
+cd frontend/
+vercel link
+echo "VALUE" | vercel env add VAR_NAME production
+vercel deploy --prod
 ```
-This handles both environments without code changes.
+
+**Auto-Deploy**:
+- Push to main → Production deploy
+- Push to other branch → Preview deploy
+- Pull request → Unique preview URL
+
+**Environment Variables**:
+- Must set for production, preview, AND development
+- Rebuild required after env var changes (build-time injection)
+
+**Edge Network**: Deploys to 100+ global CDN locations
 
 </TabItem>
 </Tabs>
 
 ---
 
-## Security Checklist
+## CORS Configuration Best Practices
 
 <Tabs groupId="developer-type">
 <TabItem value="human" label="👨‍💻 Human Developer" default>
 
-### Before Going Live
+### The Problem
 
-Use this checklist to ensure production security:
+Backend CORS configured for ONE specific URL breaks when Vercel creates new deployment URLs.
 
-- [ ] **`APP_DEBUG=false`** in Railway environment variables
-- [ ] **`APP_ENV=production`** in Railway environment variables
-- [ ] **Strong, unique `APP_KEY`** generated for production (never reuse local key)
-- [ ] **Production Twilio credentials** (not dev credentials) in Railway
-- [ ] **`FRONTEND_URL`** set to actual production domain
-- [ ] **No `.env` files** committed to git (check `.gitignore`)
-- [ ] **HTTPS enabled** on all URLs (Railway + Vercel auto-provide)
-- [ ] **CORS configured** for production domain only (not `localhost`)
-- [ ] **Database backups** enabled (Railway auto-backups PostgreSQL)
-- [ ] **Strong passwords** for all production user accounts
-- [ ] **SSL certificates** valid (Vercel + Railway auto-renew)
-- [ ] **Twilio webhooks** pointing to production URLs (not ngrok)
-- [ ] **Rate limiting** enabled on API endpoints (Laravel throttle middleware)
-- [ ] **Monitoring** configured (Sentry, UptimeRobot, etc.)
+### The Solution
 
-:::danger Critical Security Items
-The following are **critical** and will expose sensitive data if not configured correctly:
+Use pattern matching in `backend/config/cors.php`:
 
-1. **`APP_DEBUG=false`** - If true, shows full stack traces with passwords, API keys, etc.
-2. **Production Twilio credentials** - Never use dev credentials in production
-3. **CORS configuration** - Must restrict to production domain only
+```php
+<?php
+
+return [
+    'paths' => ['api/*', 'sanctum/csrf-cookie', 'dashboard/*', 'auth/*', 'analytics/*'],
+    'allowed_methods' => ['*'],
+    'allowed_origins' => array_filter([
+        'http://localhost:3000',
+        'http://localhost:3001',
+        'http://localhost:3002',
+        env('FRONTEND_URL'),  // Primary production URL
+    ]),
+
+    // ✅ CRITICAL: Allow all Vercel preview deployments
+    'allowed_origins_patterns' => ['#https://.*\.vercel\.app$#'],
+
+    'allowed_headers' => ['*'],
+    'exposed_headers' => [],
+    'max_age' => 0,
+    'supports_credentials' => true,
+];
+```
+
+### After Updating CORS Config
+
+```bash
+# DigitalOcean
+ssh root@YOUR_DROPLET_IP
+cd /var/www/dutycall/backend
+php artisan config:clear
+php artisan config:cache
+
+# Railway
+railway run php artisan config:clear
+railway run php artisan config:cache
+```
+
+### Test CORS
+
+```bash
+curl -v -X OPTIONS https://api.dutycall.net/api/login \
+  -H "Origin: https://frontend-abc123.vercel.app" \
+  -H "Access-Control-Request-Method: POST" \
+  -H "Access-Control-Request-Headers: content-type,authorization"
+
+# Should return:
+# access-control-allow-origin: https://frontend-abc123.vercel.app
+# access-control-allow-credentials: true
+```
+
+</TabItem>
+<TabItem value="ai" label="🤖 AI Agent">
+
+**CORS Pattern Matching**:
+
+**Problem**: Single URL whitelisting breaks on Vercel preview URLs
+
+**Solution**: Regex pattern matching
+```php
+'allowed_origins_patterns' => ['#https://.*\.vercel\.app$#']
+```
+
+**Explanation**:
+- `allowed_origins`: Specific URLs (localhost, production)
+- `allowed_origins_patterns`: Regex for dynamic URLs
+- Prevents breakage on new Vercel deployments
+
+**After Config Change**:
+```bash
+php artisan config:clear && php artisan config:cache
+```
+
+**Test**: Use curl with OPTIONS request and various Origin headers
+
+</TabItem>
+</Tabs>
+
+---
+
+## Monitoring & Alerting (MANDATORY FOR PRODUCTION)
+
+<Tabs groupId="developer-type">
+<TabItem value="human" label="👨‍💻 Human Developer" default>
+
+:::danger Why Monitoring is Critical
+The October 19, 2025 incident happened because we had NO monitoring. Railway environment variable disappeared → CORS broke → Login failed → **No alerts sent** → 6+ hour outage.
+
+**Monitoring is not optional. It is mandatory for production deployments.**
 :::
+
+### UptimeRobot Setup (Free)
+
+**Create free account:** https://uptimerobot.com/
+
+**Configure 3 monitors:**
+
+#### 1. Backend API Health
+```
+Type: HTTP(s)
+Name: DutyCall Backend API
+URL: https://api.dutycall.net/api/user
+Interval: 5 minutes
+Method: HEAD
+Expected Status: 401 (unauthenticated - means API is running)
+Alert: Your email
+```
+
+#### 2. SSL Certificate Monitor
+```
+Type: HTTP(s)
+Name: DutyCall SSL Certificate
+URL: https://api.dutycall.net
+Interval: 5 minutes
+SSL Monitoring: Enabled
+Alert when expires in: 30 days
+Alert: Your email
+```
+
+#### 3. Frontend Health
+```
+Type: HTTP(s)
+Name: DutyCall Frontend
+URL: https://dutycall.vercel.app
+Interval: 5 minutes
+Method: HEAD
+Expected Status: 200
+Alert: Your email
+```
+
+### Sentry Error Tracking (Recommended)
+
+**Backend:**
+```bash
+composer require sentry/sentry-laravel
+php artisan vendor:publish --provider="Sentry\Laravel\ServiceProvider"
+```
+
+Add to `.env`:
+```bash
+SENTRY_LARAVEL_DSN=https://YOUR_DSN@sentry.io/PROJECT_ID
+SENTRY_ENVIRONMENT=production
+SENTRY_TRACES_SAMPLE_RATE=0.2
+```
+
+**Frontend:**
+```bash
+npm install --save @sentry/nextjs
+npx @sentry/wizard@latest -i nextjs
+```
+
+Add to `.env`:
+```bash
+NEXT_PUBLIC_SENTRY_DSN=https://YOUR_DSN@sentry.io/PROJECT_ID
+SENTRY_ENVIRONMENT=production
+```
+
+</TabItem>
+<TabItem value="ai" label="🤖 AI Agent">
+
+**Monitoring Stack**:
+
+**UptimeRobot** (Uptime monitoring):
+- Backend API health (expects 401 Unauthorized)
+- SSL certificate expiration (30-day warning)
+- Frontend availability (expects 200 OK)
+- 5-minute intervals
+- Email alerts
+
+**Sentry** (Error tracking):
+- Backend: Laravel integration
+- Frontend: Next.js integration
+- Real-time error alerts
+- Stack traces with context
+- Performance monitoring
+
+**Setup Commands**:
+```bash
+# Backend
+composer require sentry/sentry-laravel
+
+# Frontend
+npm install --save @sentry/nextjs
+npx @sentry/wizard@latest -i nextjs
+```
+
+**Configuration**: Add `SENTRY_*` variables to environment
+
+**Why Mandatory**: October 19, 2025 incident caused 6+ hour outage due to lack of monitoring
+
+</TabItem>
+</Tabs>
+
+---
+
+## Security Best Practices
+
+<Tabs groupId="developer-type">
+<TabItem value="human" label="👨‍💻 Human Developer" default>
+
+### Security Checklist
+
+**Backend (Laravel):**
+- [ ] `APP_DEBUG=false` in production
+- [ ] `APP_ENV=production`
+- [ ] Strong database password (20+ random characters)
+- [ ] `.env` file permissions: `chmod 600 .env`
+- [ ] Storage permissions: `chown -R www-data:www-data storage`
+- [ ] SSL certificate installed and auto-renewing
+- [ ] Firewall configured (only ports 22, 80, 443 open)
+- [ ] SSH key authentication (disable password auth)
+- [ ] Regular security updates scheduled
+
+**Frontend (Next.js):**
+- [ ] No secrets in client-side code
+- [ ] Environment variables use `NEXT_PUBLIC_` prefix only for public values
+- [ ] Content Security Policy configured
+- [ ] Rate limiting on API routes
+
+### Hardening SSH Access
+
+```bash
+nano /etc/ssh/sshd_config
+
+# Set these values:
+PasswordAuthentication no
+PermitRootLogin prohibit-password
+PubkeyAuthentication yes
+
+systemctl restart sshd
+```
+
+### Automated Security Updates
+
+```bash
+apt install -y unattended-upgrades
+dpkg-reconfigure --priority=low unattended-upgrades
+```
 
 </TabItem>
 <TabItem value="ai" label="🤖 AI Agent">
 
 **Security Configuration**:
 
-**Environment**:
-- `APP_DEBUG=false` - Prevents info disclosure
-- `APP_ENV=production` - Disables dev helpers
-- `APP_KEY` - Unique encryption key (never reuse)
+**Critical Settings**:
+- `APP_DEBUG=false` (prevents info disclosure)
+- `APP_ENV=production` (disables dev helpers)
+- Strong passwords (20+ chars, random)
+- SSH key auth only (no passwords)
 
-**Authentication**:
-- Strong passwords for all users
-- Sanctum token expiration configured
-- CORS restricted to production frontend
+**File Permissions**:
+- `.env`: 600 (read/write owner only)
+- `storage/`: www-data:www-data 775
 
-**Infrastructure**:
-- HTTPS enforced (Railway + Vercel default)
-- Database credentials managed by Railway
-- No hardcoded secrets in code
+**Network Security**:
+- Firewall: Ports 22, 80, 443 only
+- SSL/HTTPS: Required (auto-provisioned)
+- SSH: Key-based auth, no root password login
 
-**Twilio**:
-- Production credentials only
-- Webhook URLs use HTTPS
-- No dev numbers in production
-
-**Best Practices**:
-- Rotate credentials periodically
-- Use environment variables, never hardcode
-- Enable Railway/Vercel security features
-- Monitor logs for suspicious activity
+**Updates**:
+- Automated security updates (unattended-upgrades)
+- Regular dependency updates
+- Credential rotation (quarterly)
 
 </TabItem>
 </Tabs>
 
 ---
 
-## Troubleshooting Production Issues
+## Troubleshooting
 
 <Tabs groupId="developer-type">
 <TabItem value="human" label="👨‍💻 Human Developer" default>
 
-### Backend Not Starting
+### Storage Permission Errors
 
-**Symptoms**: Railway deployment fails, service shows "Crashed"
+**Symptoms:** 500 errors, "failed to open stream: Permission denied"
 
-**Check:**
-1. **Railway logs** (Deployments → View Logs)
-2. **Environment variables** all set correctly
-3. **`composer.json`** dependencies are valid
-4. **PHP version** compatible (Railway uses PHP 8.2+)
+**Diagnosis:** Web server (www-data) doesn't have write permissions to Laravel storage directories.
 
-**Common Causes:**
-- Missing environment variables
-- Invalid `APP_KEY`
-- Database connection error
-- Composer dependency conflict
-
-**Fix:**
+**Solution:**
 ```bash
-# Check Railway logs
-railway logs
-
-# Verify env vars
-railway variables
-
-# Test database connection
-railway run php artisan tinker --execute="DB::connection()->getPdo();"
+ssh root@YOUR_DROPLET_IP
+cd /var/www/dutycall/backend
+chown -R www-data:www-data storage bootstrap/cache
+chmod -R 775 storage bootstrap/cache
+php artisan config:clear
 ```
 
-### Frontend Build Failing
+### CORS Errors
 
-**Symptoms**: Vercel build fails, deployment shows error
+**Symptoms:** "No 'Access-Control-Allow-Origin' header" in browser console
 
-**Check:**
-1. **Vercel build logs** (Deployments → Failed deployment → View Logs)
-2. **TypeScript errors** in build output
-3. **`NEXT_PUBLIC_*` variables** set in Vercel
-4. **Node.js version** (Vercel uses Node 18+)
+**Diagnosis:**
+1. Backend doesn't recognize the frontend's origin
+2. CORS config doesn't include pattern matching
+3. Config cache is stale
 
-**Common Causes:**
-- TypeScript type errors
-- Missing environment variables
-- Import path issues
-- Build timeout (increase in Vercel settings)
-
-**Fix:**
+**Solution:**
 ```bash
-# Test build locally
-cd frontend
-npm run build
+# 1. Verify CORS config has pattern matching
+cat /var/www/dutycall/backend/config/cors.php | grep allowed_origins_patterns
+# Should show: 'allowed_origins_patterns' => ['#https://.*\.vercel\.app$#']
 
-# Check for TypeScript errors
-npm run typecheck
+# 2. Clear config cache
+cd /var/www/dutycall/backend
+php artisan config:clear
+php artisan config:cache
 
-# Check for linting errors
-npm run lint
+# 3. Test CORS
+curl -v -X OPTIONS https://api.dutycall.net/api/login \
+  -H "Origin: https://YOUR_FRONTEND.vercel.app" \
+  -H "Access-Control-Request-Method: POST"
 ```
 
 ### Database Connection Errors
 
-**Symptoms**: Backend starts but can't connect to database
+**Symptoms:** "SQLSTATE[HY000] [2002] Connection refused"
 
-**Check:**
-1. **PostgreSQL service** running in Railway
-2. **`DB_*` environment variables** match PostgreSQL credentials
-3. **Migrations** completed successfully
-
-**Fix:**
+**Solution:**
 ```bash
-# Test database connection
-railway run php artisan tinker --execute="DB::connection()->getPdo();"
+# Check MySQL is running
+systemctl status mysql
 
-# Run migrations
-railway run php artisan migrate --force
+# Test connection
+mysql -u dutycall -p dutycall
 
-# Check PostgreSQL logs
-# Railway Dashboard → PostgreSQL service → View Logs
+# Verify .env credentials
+cat /root/.dutycall-db-credentials
+cat /var/www/dutycall/backend/.env | grep DB_
 ```
 
-### Twilio Webhooks Failing
+### Frontend - Old Deployment Cached
 
-**Symptoms**: Calls fail, no webhooks received
+**Symptoms:** Changes don't appear after deployment
 
-**Check:**
-1. **Railway URL** is correct in Twilio Console
-2. **Twilio phone number** configured correctly
-3. **Railway logs** show webhook requests
-4. **Endpoint returns TwiML** (not 404/500)
-
-**Test Manually:**
+**Solution:**
 ```bash
-# Test inbound endpoint
-curl -X POST https://your-railway-url.up.railway.app/api/twilio/inbound \
-  -d "From=+15555555555" \
-  -d "To=+16282373889"
+# 1. Hard refresh browser (Cmd+Shift+R or Ctrl+Shift+R)
 
-# Should return TwiML XML (not error)
+# 2. Verify deployment is recent
+vercel ls --prod | head -5
+
+# 3. Force new deployment
+git commit --allow-empty -m "chore: force redeploy"
+git push origin main
 ```
 
-**Fix:**
-1. Verify Twilio Console configuration matches Railway URL
-2. Check Railway logs for errors
-3. Ensure `TWILIO_*` env vars are correct
-4. Test endpoints manually with curl
+### Frontend - Environment Variables Not Applied
 
-### CORS Errors
+**Symptoms:** App calls wrong API URL (localhost, old URL)
 
-**Symptoms**: Frontend can't access backend API, browser console shows CORS error
+**Solution:**
+```bash
+# 1. Verify env vars exist
+vercel env ls | grep NEXT_PUBLIC_API_URL
+# Should show entries for production, preview, AND development
 
-**Check:**
-1. **`FRONTEND_URL`** in Railway matches actual frontend domain
-2. **CORS config** in `backend/config/cors.php`
-3. **Frontend is using HTTPS** (not HTTP)
-
-**Fix:**
-```php
-// backend/config/cors.php
-'paths' => ['api/*', 'sanctum/csrf-cookie', 'dashboard/*', 'auth/*', 'analytics/*'],
-'allowed_origins' => [env('FRONTEND_URL')],
-'supports_credentials' => true,
+# 2. Trigger rebuild (env vars are baked in at build time!)
+git commit --allow-empty -m "chore: rebuild with env vars"
+git push origin main
 ```
-
-Then restart Railway service.
 
 </TabItem>
 <TabItem value="ai" label="🤖 AI Agent">
 
-**Common Issues**:
+### Quick Diagnostic Commands
 
-**1. Backend Crash Loop**:
-- Missing env vars
-- Database connection failure
-- Invalid `APP_KEY`
-- Composer dependency conflict
-
-**Debug**:
+**Backend Health:**
 ```bash
-railway logs
-railway variables
-railway run php artisan config:cache
+curl -I https://api.dutycall.net/api/user  # Expect: 401
+ssh root@IP "cd /var/www/dutycall/backend && php artisan migrate:status"
+ssh root@IP "tail -n 50 /var/www/dutycall/backend/storage/logs/laravel.log"
 ```
 
-**2. Frontend Build Failure**:
-- TypeScript errors
-- Missing `NEXT_PUBLIC_*` vars
-- Import path issues
-- Build timeout
-
-**Debug**:
+**Frontend Health:**
 ```bash
-npm run build  # Local test
-npm run typecheck
+curl -I https://dutycall.vercel.app  # Expect: 200
+vercel ls --prod | head -5
+vercel logs --since 1h
 ```
 
-**3. Database Connection**:
-- PostgreSQL service not running
-- Wrong `DB_*` credentials
-- Migrations not run
+### Common Issues Quick Fix Matrix
 
-**Debug**:
+| Issue | Quick Fix | Verification |
+|-------|-----------|--------------|
+| Storage permissions | `ssh root@IP "cd /var/www/dutycall/backend && chown -R www-data:www-data storage bootstrap/cache && chmod -R 775 storage bootstrap/cache"` | `ssh root@IP "ls -la /var/www/dutycall/backend/storage"` |
+| CORS errors | `ssh root@IP "cd /var/www/dutycall/backend && php artisan config:clear && php artisan config:cache"` | `curl -v -X OPTIONS https://api.dutycall.net/api/login -H "Origin: https://test.vercel.app"` |
+| Database connection | `ssh root@IP "systemctl status mysql"` then `ssh root@IP "cd /var/www/dutycall/backend && php artisan config:clear"` | `ssh root@IP "mysql -u dutycall -p dutycall -e 'SELECT 1'"` |
+| Stale frontend | `git commit --allow-empty -m "chore: force redeploy" && git push origin main` | `vercel ls --prod \| head -3` |
+| Missing env vars | `vercel env ls` then `echo "VALUE" \| vercel env add VAR_NAME production` then redeploy | `vercel logs \| grep NEXT_PUBLIC` |
+
+### Investigation Checklist
+
+When user reports an issue, execute in order:
+
+1. **Gather evidence**
+   ```bash
+   ssh root@IP "tail -100 /var/www/dutycall/backend/storage/logs/laravel.log"
+   ssh root@IP "tail -100 /var/log/nginx/dutycall-error.log"
+   vercel logs --since 1h
+   ```
+
+2. **Test connectivity**
+   ```bash
+   curl -v https://api.dutycall.net/api/user
+   curl -v https://dutycall.vercel.app
+   ```
+
+3. **Check recent changes**
+   ```bash
+   ssh root@IP "cd /var/www/dutycall/backend && git log --oneline -5"
+   vercel ls | head -10
+   ```
+
+4. **Verify configuration**
+   ```bash
+   ssh root@IP "cd /var/www/dutycall/backend && grep -E '(APP_ENV|APP_DEBUG|DB_|FRONTEND_URL)' .env"
+   vercel env ls
+   ```
+
+### Emergency Rollback
+
+**Backend (DigitalOcean):**
 ```bash
-railway run php artisan migrate --force
-railway run php artisan db:show
+ssh root@IP "cd /var/www/dutycall/backend && git log --oneline -5"
+# Note last working commit
+ssh root@IP "cd /var/www/dutycall/backend && git checkout COMMIT_HASH && composer install --no-dev && php artisan config:cache && systemctl restart php8.3-fpm"
 ```
 
-**4. Webhook Failures**:
-- Wrong Railway URL in Twilio
-- TwiML endpoints returning errors
-- CORS blocking requests
-
-**Debug**:
+**Frontend (Vercel):**
 ```bash
-curl -X POST {RAILWAY_URL}/api/twilio/inbound
-railway logs --filter="twilio"
+vercel ls --prod | head -10
+# In Vercel dashboard: Go to deployment → "Promote to Production"
+# Or: vercel rollback
 ```
 
-**5. CORS Errors**:
-- `FRONTEND_URL` mismatch
-- CORS paths not configured
-- HTTP vs HTTPS mismatch
+### Key Files Reference
 
-**Fix**: Update `FRONTEND_URL`, check `config/cors.php`
-
-</TabItem>
-</Tabs>
-
----
-
-## Cost Considerations
-
-<Tabs groupId="developer-type">
-<TabItem value="human" label="👨‍💻 Human Developer" default>
-
-### Railway Costs
-
-**Free Tier:**
-- $5 free credits per month
-- Covers PostgreSQL + backend service for low-traffic apps
-- Perfect for development and testing
-
-**Hobby Plan** ($5/month):
-- $5 credits included
-- Pay-as-you-grow beyond included credits
-- Good for small production workloads
-
-**Pro Plan** ($20/month):
-- $20 credits included
-- Priority support
-- Higher resource limits
-
-**Typical Usage:**
-- Small app (~100 users): $5-10/month
-- Medium app (~1000 users): $20-50/month
-- Database backups: Included
-- Egress: ~$0.10/GB
-
-### Vercel Costs
-
-**Free Tier (Hobby):**
-- Unlimited personal projects
-- 100GB bandwidth/month
-- Generous function execution time
-- Perfect for most small apps
-
-**Pro Plan** ($20/month):
-- 1TB bandwidth/month
-- Advanced analytics
-- Team collaboration
-- Custom domains with SSL
-
-**Typical Usage:**
-- Small app: Free tier sufficient
-- Medium app: $0-20/month
-- Large app: $20-100/month
-
-### Twilio Costs
-
-**Pay-As-You-Go:**
-- **Inbound calls**: $0.0085/minute
-- **Outbound calls**: $0.013/minute
-- **Phone number**: $1/month per number
-- **SMS** (if used): $0.0075/message
-
-**Typical Monthly Costs:**
-- 1000 minutes inbound: ~$9
-- 1000 minutes outbound: ~$13
-- 2 phone numbers: $2
-- **Total for 1000 min**: ~$24/month
-
-**Cost Optimization:**
-- Use voice recording instead of live agents when possible
-- Batch outbound calls during off-peak hours
-- Monitor usage via Twilio Console
-
-### Total Estimated Costs
-
-| Usage Level | Railway | Vercel | Twilio | **Total/Month** |
-|-------------|---------|--------|--------|-----------------|
-| **Development** | $0 (free) | $0 (free) | $2 (numbers) | **$2** |
-| **Small** (100 users, 500 min) | $5 | $0 | $12 | **$17** |
-| **Medium** (1000 users, 2000 min) | $20 | $20 | $45 | **$85** |
-| **Large** (5000+ users, 10000 min) | $50 | $50 | $200 | **$300** |
-
-:::tip Start Free
-Both Railway and Vercel have generous free tiers. Start there and upgrade only when you need more resources. Twilio is pay-as-you-go, so you only pay for actual call minutes used.
-:::
-
-</TabItem>
-<TabItem value="ai" label="🤖 AI Agent">
-
-**Cost Breakdown**:
-
-**Railway**:
-- Free: $5 credits/month
-- Hobby: $5/month base + usage
-- Pro: $20/month base + usage
-- Scales with CPU/memory/storage
-
-**Vercel**:
-- Free: Generous for personal projects
-- Pro: $20/month (team features)
-- Bandwidth: $0.15/GB beyond limits
-
-**Twilio**:
-- Inbound: $0.0085/min
-- Outbound: $0.013/min
-- Number: $1/month
-- SMS: $0.0075/msg
-
-**Optimization**:
-- Use Railway free tier for dev
-- Monitor Twilio usage (biggest variable cost)
-- Cache API responses to reduce compute
-- Use Vercel free tier until 100GB/month bandwidth
-
-**Scaling Costs**:
-Linear scaling with users/traffic. Most expensive: Twilio call minutes.
-
-</TabItem>
-</Tabs>
-
----
-
-## Next Steps
-
-<Tabs groupId="developer-type">
-<TabItem value="human" label="👨‍💻 Human Developer" default>
-
-### Post-Deployment Checklist
-
-After successful deployment:
-
-1. **Test Core Functionality**:
-   - [ ] Login with production credentials
-   - [ ] Make test inbound call to production number
-   - [ ] Test manual dialer (outbound call)
-   - [ ] Verify agent queue dashboard works
-   - [ ] Check call history and reporting
-
-2. **Configure Monitoring**:
-   - [ ] Set up Sentry for error tracking
-   - [ ] Configure UptimeRobot for uptime monitoring
-   - [ ] Add your phone/email to alert notifications
-
-3. **Security Hardening**:
-   - [ ] Review security checklist above
-   - [ ] Enable 2FA on Railway + Vercel accounts
-   - [ ] Rotate any exposed credentials
-   - [ ] Review CORS configuration
-
-4. **Documentation**:
-   - [ ] Document any custom configuration
-   - [ ] Update team with production URLs
-   - [ ] Create runbook for common issues
-
-5. **Performance Optimization**:
-   - [ ] Enable Laravel caching (`php artisan config:cache`)
-   - [ ] Configure Redis for sessions (optional)
-   - [ ] Review Railway metrics after first week
-
-### Ongoing Maintenance
-
-**Weekly:**
-- Check Railway + Vercel logs for errors
-- Review Twilio usage and costs
-- Monitor uptime reports
-
-**Monthly:**
-- Review and optimize costs
-- Update dependencies (`composer update`, `npm update`)
-- Rotate API keys and credentials
-
-**Quarterly:**
-- Performance audit
-- Security audit
-- Backup restoration test
-
-</TabItem>
-<TabItem value="ai" label="🤖 AI Agent">
-
-**Post-Deploy Tasks**:
-
-1. **Validation**:
-   - Health checks passing
-   - End-to-end testing (login → call → report)
-   - Performance baseline established
-
-2. **Monitoring Setup**:
-   - Error tracking (Sentry)
-   - Uptime monitoring (UptimeRobot)
-   - Log aggregation (Railway + Vercel)
-
-3. **Security**:
-   - Audit checklist completed
-   - 2FA enabled on accounts
-   - Credentials rotated if exposed
-
-4. **Optimization**:
-   - Laravel config caching
-   - Database indexing
-   - API response caching
-
-**Maintenance Schedule**:
-- **Daily**: Monitor logs
-- **Weekly**: Review metrics
-- **Monthly**: Update dependencies
-- **Quarterly**: Security audit
+| File | Purpose | Location |
+|------|---------|----------|
+| Backend logs | Error traces | `/var/www/dutycall/backend/storage/logs/laravel.log` |
+| Nginx error log | Web server errors | `/var/log/nginx/dutycall-error.log` |
+| Nginx access log | Request logs | `/var/log/nginx/dutycall-access.log` |
+| Backend .env | Config | `/var/www/dutycall/backend/.env` |
+| CORS config | CORS settings | `/var/www/dutycall/backend/config/cors.php` |
+| DB credentials | DB password | `/root/.dutycall-db-credentials` |
 
 </TabItem>
 </Tabs>
@@ -1161,15 +1060,15 @@ After successful deployment:
 
 ## Additional Resources
 
-- **Local Development**: [Full-Stack Local Setup](/developers/getting-started/local-setup)
-- **Environment Configuration**: [Environment Configuration Guide](/developers/getting-started/environment-config)
-- **Architecture Overview**: [Developer Overview](/developers/overview)
+- [Local Development Setup](/developers/getting-started/local-setup)
+- [Environment Configuration](/developers/getting-started/environment-config)
+- [Monitoring Systems Guide](/monitoring)
 - **Railway Docs**: https://docs.railway.app
 - **Vercel Docs**: https://vercel.com/docs
-- **Twilio Docs**: https://www.twilio.com/docs/voice
+- **DigitalOcean Docs**: https://docs.digitalocean.com
 
 ---
 
-**Questions?** Contact the project lead or check Railway/Vercel logs for deployment issues.
+**Questions?** Check the troubleshooting section or contact support@dutycall.net
 
-**Ready to deploy?** Start with the Railway backend setup above! 🚀
+**Ready to deploy?** Start with DigitalOcean Droplet setup for production! 🚀
