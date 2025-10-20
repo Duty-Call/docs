@@ -199,6 +199,7 @@ const sidebars = {
               type: 'category',
               label: 'Platform Guides',
               items: [
+                'developers/deployment/backend/digitalocean',
                 'developers/deployment/backend/railway',
               ],
             },

@@ -238,6 +238,31 @@ git push origin main  # Auto-deploys via GitHub Actions
 gh run watch         # Monitor deployment
 ```
 
+## Git Commit Standards
+
+**CRITICAL: NO ADVERTISING OR AI ATTRIBUTION**
+
+Commit messages must be professional and contain ONLY:
+- ✅ Clear, descriptive summary of changes
+- ✅ Bullet points explaining what was modified
+- ✅ Relevant issue/ticket numbers if applicable
+
+**NEVER include:**
+- ❌ AI tool branding or attribution
+- ❌ Marketing taglines
+- ❌ Emojis unless part of conventional commit type
+- ❌ Co-author credits for AI tools
+
+**Example:**
+```
+docs: Add production deployment guide with DigitalOcean and Railway options
+
+- Add DigitalOcean Droplet as recommended production option
+- Add Railway warnings with incident details
+- Include CORS configuration best practices
+- Add monitoring setup with UptimeRobot and Sentry
+```
+
 ## Common Tasks
 
 ### Add New Feature Documentation
